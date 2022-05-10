@@ -1,0 +1,21 @@
+{% extends "public/templates/public_template.html" %}
+
+{% block title %}Convert{% endblock %}
+
+{% block main %}
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <h2>Vernon/LUNA image metadata creator</h2>
+      <p>Welcome to your one-stop shop for all your Vernon/LUNA image creation needs.</p>
+      <hr>
+      <form action="/choice" method="POST">
+          <h2>Choose an action</h2>
+          <a href="{{ url_for('input_vernon') }}"><p>Get Vernon and LUNA XMLs for import</p></a>
+          <a href="{{ url_for('input_vernon_link') }}"><p>Get Vernon linking XML for update</p></a>
+          <a href="{{ url_for('input_iiif') }}"><p>Get IIIF Vernon XML for update</p></a>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "public/templates/public_template.html" %}
+
+{% block title %}Convert{% endblock %}
+
+{% block main %}
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <h2>Vernon/LUNA image metadata creator</h2>
+
+      <h3>XML generator for Vernon AV records and LUNA records</h3>
+      <p>This form will generate Vernon and LUNA XML, an image list, and copy statements to make new images.</p>
+      <p>Please fill in the metadata fields below, following instructions where stated.</p>
+
+      <hr>
+      <form action="/inputvernon" method="POST">
+        <h3>Enter image names</h3>
+        <p>Formats:
+          <ul>
+            <li>Arnold image names- full image names (inc extension), separate by comma.</li>
+            <li>DIU image names- "full image names (inc extension) : accession_no : view", separate by comma.</li>
+          </ul>
+        </p>
+        <hr>
+        <div class="form-group">
+          <label>Image Names</label>
+          <input type="textarea" class="form-control" id="image_names" name="image_names"
+                 placeholder="Image Names" required>
+          <label>Image Types</label>
+          <select class="form-control" id="image_types" name="image_types"
+                 placeholder="Choose a type of image name" required>
+              <optgroup label="Image Types">
+                <option value="arnold">Arnold</option>
+                <option value="diu">DIU</option>
+              </optgroup>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Get Vernon XML</button>
+        {% if feedback %}
+        <p class="text-danger float-right">{{ feedback }}</p>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends "public/templates/public_template.html" %}
+
+{% block title %}Download{% endblock %}
+
+{% block main %}
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <h2>Vernon/LUNA image metadata creator</h2>
+         <div class="button">
+          <form class="button" action="/downloadvernonlink" method="GET">
+            <button type="submit" class="btn btn-primary">Download Vernon Linking XML</button>
+            {% if feedback %}
+            <p class="text-danger float-right">{{ feedback }}</p>
+            {% endif %}
+          </form>
+        </div>
+        <a href="{{ url_for('choice') }}"><p>Back to beginning</p></a>
+      <hr>
+    </div>
+  </div>
+</div>
+{% endblock %}

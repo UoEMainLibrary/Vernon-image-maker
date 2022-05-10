@@ -1,0 +1,47 @@
+{% extends "public/templates/public_template.html" %}
+
+{% block title %}Download{% endblock %}
+
+{% block main %}
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <h2>Vernon/LUNA image metadata creator</h2>
+        <div class="button">
+          <form class="button" action="/downloadvernon" method="GET">
+            <button type="submit" class="btn btn-primary">Download Vernon XML</button>
+            {% if feedback %}
+            <p class="text-danger float-right">{{ feedback }}</p>
+            {% endif %}
+          </form>
+        </div>
+        <div class="button">
+          <form class="button" action="/downloadimagelist" method="GET">
+            <button type="submit" class="btn btn-primary">Download Image List</button>
+            {% if feedback %}
+            <p class="text-danger float-right">{{ feedback }}</p>
+            {% endif %}
+          </form>
+        </div>
+        <div class="button">
+          <form class="button" action="/downloadrenamecommands" method="GET">
+            <button type="submit" class="btn btn-primary">Download Rename Commands</button>
+            {% if feedback %}
+            <p class="text-danger float-right">{{ feedback }}</p>
+            {% endif %}
+          </form>
+        </div>
+        <div class="button">
+          <form class="button" action="/downloadluna" method="GET">
+            <button type="submit" class="btn btn-primary">Download LUNA XML</button>
+            {% if feedback %}
+            <p class="text-danger float-right">{{ feedback }}</p>
+            {% endif %}
+          </form>
+        </div>
+        <a href="{{ url_for('choice') }}"><p>Back to beginning</p></a>
+      <hr>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,54 @@
+<?xml version="1.0" ?>
+<recordList>
+	<record>
+		<field name="work_record_id">
+			<value>0032903</value>
+		</field>
+		<entity name="id_number">
+			<field name="catalogue_number">
+				<value>1003</value>
+			</field>
+		</entity>
+		<entity name="title">
+			<field name="work_title">
+				<value>Bassoon, nominal pitch: C</value>
+			</field>
+		</entity>
+		<entity name="date">
+			<field name="work_date">
+				<value>Circa 1790</value>
+			</field>
+		</entity>
+		<entity name="creator">
+			<field name="work_creator_details">
+				<value>Unknown</value>
+			</field>
+		</entity>
+		<entity name="rights">
+			<field name="work_rights_statement">
+				<value>© The University of Edinburgh</value>
+			</field>
+		</entity>
+		<entity name="repro_id_number">
+			<field name="repro_record_id">
+				<value>0032903c-0007.tif</value>
+			</field>
+			<field name="repro_id_number">
+				<value>0032000-0032999\0032903c-0007.jpg</value>
+			</field>
+			<field name="repro_old_id_number">
+				<value/>
+			</field>
+		</entity>
+		<entity name="repro_title">
+			<field name="repro_title">
+				<value>Bassoon, nominal pitch: C (Unknown) : Quarter view front right</value>
+			</field>
+		</entity>
+		<entity name="repro_rights">
+			<field name="repro_rights_statement">
+				<value>© The University of Edinburgh</value>
+			</field>
+		</entity>
+	</record>
+</recordList>

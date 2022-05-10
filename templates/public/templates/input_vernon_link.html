@@ -1,0 +1,45 @@
+{% extends "public/templates/public_template.html" %}
+
+{% block title %}Convert{% endblock %}
+
+{% block main %}
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <h2>Vernon/LUNA image metadata creator</h2>
+      <h3>Vernon Object/AV linking metadata creator</h3>
+      <p>This form will generate the XML which links AV records onto objects</p>
+      <p>Please fill in the metadata fields below, following instructions where stated.</p>
+      <hr>
+      <form action="/inputvernonlink" method="POST">
+        <h3>Enter image names</h3>
+        <p>Formats:
+          <ul>
+            <li>Arnold image names- use the image list generated in the previous stage, prior to metadata import.</li>
+            <li>DIU image names- use the image list you used as an input on the previous stage.</li>
+          </ul>
+        </p>
+        <hr>
+        <div class="form-group">
+          <label>Image Names</label>
+          <input type="textarea" class="form-control" id="image_names" name="image_names"
+                 placeholder="Enter some Arnold style image names" required>
+          <label>Image Types</label>
+          <select class="form-control" id="image_types" name="image_types"
+                 placeholder="Choose a type of image name" required>
+              <optgroup label="Image Types">
+                <option value="arnold">Arnold</option>
+                <option value="diu">DIU</option>
+              </optgroup>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Get Vernon XML</button>
+        {% if feedback %}
+        <p class="text-danger float-right">{{ feedback }}</p>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
