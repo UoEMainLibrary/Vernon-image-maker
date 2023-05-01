@@ -7,7 +7,13 @@
   <div class="row">
     <div class="col">
       <h2>Vernon/LUNA image metadata creator</h2>
-         <div class="button">
+        <h3>1. Download Vernon Object/AV linking XML</h3>
+        <li>Use this file to link AV records to Object records in Vernon.</li>
+        <li>In Vernon, go to Tools>XML>XML Import>Import</li>
+        <li>Use processedMIMEdLink as Config</li>
+        <li>Use this file as File</li>
+        <li>You can save the results as a list with an appropriate name.</li>
+        <div class="button">
           <form class="button" action="/downloadvernonlink" method="GET">
             <button type="submit" class="btn btn-primary">Download Vernon Linking XML</button>
             {% if feedback %}
@@ -15,6 +21,20 @@
             {% endif %}
           </form>
         </div>
+        <br>
+        <h3>2. Download Vernon IIIF linking XML</h3>
+        <li>Use this file to update records with their IIIF IDs in Vernon.</li>
+        <li>In Vernon, go to Tools>XML>XML Import>Import</li>
+        <li>Use IIIFUpdate2020 as Config</li>
+        <li>Use this file as File</li>
+        <li>You can save the results as a list with an appropriate name.</li>
+        <form class="button" action="/downloadiiif" method="GET">
+            <button type="submit" class="btn btn-primary">Download IIIF Update XML</button>
+            {% if feedback %}
+            <p class="text-danger float-right">{{ feedback }}</p>
+            {% endif %}
+        </form>
+        <br>
         <a href="{{ url_for('choice') }}"><p>Back to beginning</p></a>
       <hr>
     </div>

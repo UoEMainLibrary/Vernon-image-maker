@@ -7,7 +7,14 @@
   <div class="row">
     <div class="col">
       <h2>Vernon/LUNA image metadata creator</h2>
+      <p>These tasks can be done in almost any order. You need to copy renamed files (step 3) before step 4 (upload to LUNA).</p>
         <div class="button">
+          <h4>1. Vernon XML</h4>
+          <li>Use this file to upload AV records in Vernon.</li>
+          <li>In Vernon, go to Tools>XML>XML Import>Import</li>
+          <li>Use processedMIMEdAV as Config</li>
+          <li>Use this file as File</li>
+          <li>You can save the results as a list with an appropriate name.</li>
           <form class="button" action="/downloadvernon" method="GET">
             <button type="submit" class="btn btn-primary">Download Vernon XML</button>
             {% if feedback %}
@@ -15,23 +22,18 @@
             {% endif %}
           </form>
         </div>
+        <br>
         <div class="button">
-          <form class="button" action="/downloadimagelist" method="GET">
-            <button type="submit" class="btn btn-primary">Download Image List</button>
-            {% if feedback %}
-            <p class="text-danger float-right">{{ feedback }}</p>
-            {% endif %}
-          </form>
-        </div>
-        <div class="button">
-          <form class="button" action="/downloadrenamecommands" method="GET">
-            <button type="submit" class="btn btn-primary">Download Rename Commands</button>
-            {% if feedback %}
-            <p class="text-danger float-right">{{ feedback }}</p>
-            {% endif %}
-          </form>
-        </div>
-        <div class="button">
+          <h4>2. LUNA XML</h4>
+          <li><a href="https://images.is.ed.ac.uk/luna/servlet">Open LUNA</a></li>
+          <li>Login</li>
+          <li>Open Uploader</li>
+          <li>Open new batch (+ sign above Batches on left-hand-side)</li>
+          <li>Select files- your images, and the file below (it can process them altogether)</li>
+          <li>Start upload</li>
+          <li>When all images and metadata in, go to Settings</li>
+          <li>Select Repro Record ID as matching field</li>
+          <li>Apply Links</li>
           <form class="button" action="/downloadluna" method="GET">
             <button type="submit" class="btn btn-primary">Download LUNA XML</button>
             {% if feedback %}
@@ -39,6 +41,44 @@
             {% endif %}
           </form>
         </div>
+        <br>
+        <div class="button">
+          <h4>3. Image List</h4>
+          <li>Save this image list- you will need it to get linking XML and IIIF Ids when the images have arrived in LUNA.</li>
+          <form class="button" action="/downloadimagelist" method="GET">
+            <button type="submit" class="btn btn-primary">Download Image List</button>
+            {% if feedback %}
+            <p class="text-danger float-right">{{ feedback }}</p>
+            {% endif %}
+          </form>
+        </div>
+        <br>
+      <h4><i>Step 4- N/A for DIU images</i></h4>
+        <div class="button">
+          <h4>4a. Rename commands- if using Mac or LINUX</h4>
+          <li>Open a UNIX terminal.</li>
+          <li>Copy the commands in this file and press enter.</li>
+          <form class="button" action="/downloadrenamecommandsunix" method="GET">
+            <button type="submit" class="btn btn-primary">Download Rename Commands- UNIX</button>
+            {% if feedback %}
+            <p class="text-danger float-right">{{ feedback }}</p>
+            {% endif %}
+          </form>
+        </div>
+        <br>
+        <div class="button">
+          <h4>4b. Rename commands- if using Windows</h4>
+          <li>Open an MS-DOS cmd window.</li>
+          <li>Copy the commands in this file and press enter.</li>
+          <form class="button" action="/downloadrenamecommandswin" method="GET">
+            <button type="submit" class="btn btn-primary">Download Rename Commands- Windows</button>
+            {% if feedback %}
+            <p class="text-danger float-right">{{ feedback }}</p>
+            {% endif %}
+          </form>
+        </div>
+
+        <br>
         <a href="{{ url_for('choice') }}"><p>Back to beginning</p></a>
       <hr>
     </div>

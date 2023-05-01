@@ -4,7 +4,7 @@ class Metadata:
         self.imageNameStr = ""
         self.creatorNameStr = 'Digital Imaging Unit'
         self.accessionNo = ""
-        self.creatorNotes = ""
+        self.creatorNotes = "Digital images"
         self.viewStr = ""
         self.name = ""
         self.systemid = ""
@@ -23,24 +23,27 @@ class Metadata:
         self.view_bit = ""
         self.reproRights = "© The University of Edinburgh"
         self.workRecordId = ""
+        self.oldId = ""
 
 
     def get_view(self, view_bit):
-        '''
+        """
+        This function returns a readable string for the view, based on a code
         :param view_bit:
-        :return:
-        '''
+        :return view in string form:
+        """
+        print(view_bit)
         return {
             'l': 'Left',
             't': 'Top',
-            'q': 'Quarter view',
+            'q': 'Quarter',
             's': 'Side View',
             'r': 'Right',
             'f': 'Front',
             'b': 'Back',
             'u': 'Underneath',
             'd': 'Case',
-            'g': 'General view',
+            'g': 'General',
             'i': 'Insides',
             'o': 'Outsides',
             'c': 'With Case',
@@ -52,11 +55,11 @@ class Metadata:
         }[view_bit]
 
     def get_detail_view(self, detail_view_bit):
-        '''
-
+        """
+        This function returns the more specific value (based on a two char code) for the detail
         :param detail_view_bit:
-        :return:
-        '''
+        :return detail view in string form:
+        """
         return {
             'xs': 'Detail view - stamp or other inscription',
             'xm': 'Detail view - mouthpiece',
@@ -65,10 +68,11 @@ class Metadata:
         }[detail_view_bit]
 
     def get_suffix(self, format):
-        '''
+        """
+        This function returns the DIU suffix applied to jpgs (derivative) and tiffs (crop)
         :param format:
-        :return:
-        '''
+        :return suffix:
+        """
         return {
             "tif": "c",
             "tiff": "c",
@@ -82,10 +86,10 @@ class Metadata:
 
     def get_items(self, accession_no):
         """
-            Get Object info from API and return as json
-            :param url: the API URL
-            :return data: the returned json
-            """
+        Get Object info from API and return as json
+        :param url: the API URL
+        :return data: the returned json
+        """
         from urllib.request import FancyURLopener
         import json
         vernon_api = 'http://vernonapi.is.ed.ac.uk/vcms-api/oecgi4.exe/datafiles/OBJECT/?query='
@@ -97,7 +101,7 @@ class Metadata:
             version = 'My new User-Agent'
 
         url = vernon_api + "accession_no:" + accession_no + "&fields=id,name,prod_pri_date,prod_pri_person_name,av,user_sym_37,user_sym_20"
-        print(url)
+
         myopener = MyOpener()
         response = myopener.open(url)
         try:
@@ -107,10 +111,11 @@ class Metadata:
             print("nothing to run")
 
     def get_creator_notes(self, creator_bit):
-        '''
+        """
+        Get the creator notes based on the creator character
         :param creator_bit:
-        :return:
-        '''
+        :return creator notes string:
+        """
         return {
             'a': 'Digital images done by ACE',
             'b': 'Greyscale digital images- derived from colour but optimised for monochrome delivery',
@@ -122,15 +127,16 @@ class Metadata:
             'h': 'Colour digital images and colour scans from negatives or prints',
             'i': 'A camera with gunpowder etc',
             'j': 'Colour digital images',
-            'k': 'Digital images',
-            'l': 'Digital images'
+            'l': 'Digital images',
+            'v': 'Digital images'
         }[creator_bit]
 
     def get_name(self, vernon_items):
-        '''
+        """
+        Pick the Title out of the returned JSON array for the Vernon object
         :param vernon_items:
-        :return:
-        '''
+        :return name:
+        """
         try:
             name = vernon_items["_embedded"]["records"][0]['name']
             if "\n" in name:
@@ -140,21 +146,35 @@ class Metadata:
         return name
 
     def get_sysid (self, vernon_items):
-        '''
+        """
+        Pick the internal Vernon System ID out of the returned JSON array for the Vernon object
         :param vernon_items:
-        :return:
-        '''
+        :return id:
+        """
         try:
             id = vernon_items["_embedded"]["records"][0]['id']
         except Exception:
             id = ''
         return id
 
-    def get_date (self, vernon_items):
-        '''
+    def get_av_ref(self, vernon_items):
+        """
+        Pick the Object Reference (Accession No) out of the returned JSON array for the Vernon object
         :param vernon_items:
-        :return:
-        '''
+        :return ref:
+        """
+        try:
+            ref = vernon_items["_embedded"]["records"][0]['ref_group'][0]['ref']
+        except Exception:
+            ref = ''
+        return ref
+
+    def get_date (self, vernon_items):
+        """
+        Pick the work creation date out of the returned JSON array for the Vernon object
+        :param vernon_items:
+        :return date:
+        """
         try:
             date = vernon_items["_embedded"]["records"][0]['prod_pri_date_details_group'][0]['prod_pri_date']
         except Exception:
@@ -163,10 +183,11 @@ class Metadata:
 
 
     def get_maker (self, vernon_items):
-        '''
+        """
+        Pick the maker out of the returned JSON array for the Vernon object
         :param vernon_items:
-        :return:
-        '''
+        :return maker:
+        """
         try:
             maker = vernon_items["_embedded"]["records"][0]['prod_pri_person_details_group'][0]['prod_pri_person_name']
         except Exception:
@@ -174,10 +195,11 @@ class Metadata:
         return maker
 
     def get_seven_digit (self, vernon_items):
-        '''
+        """
+        Pick the AV Link ID (seven digit id) out of the returned JSON array for the Vernon object
         :param vernon_items:
-        :return:
-        '''
+        :return seven digit id:
+        """
         try:
             seven = vernon_items["_embedded"]["records"][0]['user_sym_37']
         except Exception:
@@ -185,10 +207,11 @@ class Metadata:
         return seven
 
     def get_existing_images (self, vernon_items):
-        '''
+        """
+        Pick the list of associated images out of the returned JSON array for the Vernon object
         :param vernon_items:
-        :return:
-        '''
+        :return av_group:
+        """
         try:
             avs = vernon_items["_embedded"]["records"][0]['av_group']
         except Exception:
@@ -196,10 +219,11 @@ class Metadata:
         return avs
 
     def get_creator(self, creator_bit):
-        '''
+        """
+        Pick the image creator out of the returned JSON array for the Vernon object
         :param creator_bit:
         :return:
-        '''
+        """
         print(creator_bit)
         return {
             'a': 'Rachel Travers',
@@ -212,16 +236,17 @@ class Metadata:
             'h': 'Antonia Reeve',
             'i': 'Arnold Myers',
             'j': 'Colour digital images',
-            'k': 'Silke Dykstra',
-            'l': 'Zeo Cordey'
+            'l': 'Silke Dykstra',
+            'v': 'Zoe Cordey'
         }[creator_bit]
 
     def derive_tail(self, image_list, accession_no):
-        '''
+        """
+        Work out the tail for an image based on other images for that AV Id
         :param image_list:
         :param accession_no:
-        :return:
-        '''
+        :return newtail:
+        """
         batch_tail = 0
         tail_derived = False
         newtail = ''
@@ -240,10 +265,11 @@ class Metadata:
         return newtail
 
     def get_tail(self, existing_images):
-        '''
+        """
+        Work out the tail for an image based on other images for that AV Id if the previous function returned null
         :param existing_images:
-        :return:
-        '''
+        :return newtail:
+        """
         maxtail = -1
         newtail = "tail"
         avcount = 0
@@ -289,6 +315,11 @@ class Metadata:
         return newtail
 
     def get_av_items(self, searchAV):
+        """
+        Get data back for AV ID
+        :param searchAV:
+        :return data:
+        """
         from urllib.request import FancyURLopener
         import json
         vernon_api = 'http://vernonapi.is.ed.ac.uk/vcms-api/oecgi4.exe/datafiles/AV/?query='
@@ -300,7 +331,6 @@ class Metadata:
             version = 'My new User-Agent'
 
         url = vernon_api + "search:" + searchAV +"&fields=id,im_ref"
-        print(url)
         myopener = MyOpener()
         response = myopener.open(url)
         try:
@@ -310,6 +340,11 @@ class Metadata:
             print("nothing to run")
 
     def get_items_for_link(self, avNumber):
+        """
+        Get data for an av Number
+        :param avNumber:
+        :return data:
+        """
         from urllib.request import FancyURLopener
         import json
         vernon_api = 'http://vernonapi.is.ed.ac.uk/vcms-api/oecgi4.exe/datafiles/OBJECT/?query='
@@ -321,7 +356,6 @@ class Metadata:
             version = 'My new User-Agent'
 
         url = vernon_api + "search:" + avNumber +"&fields=id"
-        print(url)
         myopener = MyOpener()
         response = myopener.open(url)
         try:
@@ -331,10 +365,11 @@ class Metadata:
             print("nothing to run")
 
     def get_av_sysid(self, vernon_av_items):
-        '''
+        """
+        Get sysid for an AV from JSON Array
         :param vernon_items:
-        :return:
-        '''
+        :return id:
+        """
         try:
             id = vernon_av_items["_embedded"]["records"][0]['id']
         except Exception:
@@ -342,10 +377,11 @@ class Metadata:
         return id
 
     def get_work_record_id(self, vernon_items):
-        '''
+        """
+        Pick work record id from JSON array of data
         :param vernon_items:
-        :return:
-        '''
+        :return work_record_id:
+        """
         try:
             work_record_id = vernon_items["_embedded"]["records"][0]['user_sym_20']
         except Exception:
@@ -353,10 +389,11 @@ class Metadata:
         return work_record_id
 
     def get_repro_rights(self, creator_bit):
-        '''
+        """
+        Get the specific rights statement for an image
         :param creator_bit:
-        :return:
-        '''
+        :return string:
+        """
         return {
             'a': '© The University of Edinburgh',
             'b': '© The University of Edinburgh',
@@ -372,7 +409,38 @@ class Metadata:
             'v': '© Zeo Cordey/The University of Edinburgh'
         }[creator_bit]
 
+    def get_link_info(self, imageNameStr):
+        """
+        Interrogate Vernon API based on an image id
+        :param imageNameStr:
+        :return data:
+        """
+        from urllib.request import FancyURLopener
+        import json
+        vernon_api = 'http://vernonapi.is.ed.ac.uk/vcms-api/oecgi4.exe/datafiles/AV/?query='
+
+        class MyOpener(FancyURLopener):
+            """
+            MyOpener
+            """
+            version = 'My new User-Agent'
+
+        url = vernon_api + "search:" + imageNameStr + "&fields=id,im_ref,user_sym_13,user_sym_23,ref"
+        print(url)
+        myopener = MyOpener()
+        response = myopener.open(url)
+        try:
+            data = response.read().decode("utf-8")
+            return json.loads(data)
+        except Exception:
+            print("nothing to run")
+
     def get_luna_items(self, imageNameStr):
+        """
+        Get data back from the LUNA API based on a Repro Record ID
+        :param imageNameStr:
+        :return data:
+        """
         from urllib.request import FancyURLopener
         import json
         luna_api = 'https://images.is.ed.ac.uk/luna/servlet/as/fetchMediaSearch?fullData=true&bs=10000&q=Repro_Record_ID='
@@ -384,7 +452,6 @@ class Metadata:
             version = 'My new User-Agent'
 
         url = luna_api + imageNameStr
-        print(url)
         myopener = MyOpener()
         response = myopener.open(url)
         try:
@@ -394,10 +461,11 @@ class Metadata:
             print("nothing to run")
 
     def get_luna_url(self, luna_items):
-        '''
-        :param creator_bit:
-        :return:
-        '''
+        """
+        Get the LUNA URL from the returned LUNA json
+        :param luna_items:
+        :return luna_url:
+        """
         try:
             luna_url = luna_items[0]['identity']
         except Exception:

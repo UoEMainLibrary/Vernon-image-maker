@@ -64,12 +64,20 @@ def download_luna():
     path = "files/luna.xml"
     return send_file(path, as_attachment=True)
 
-@app.route('/downloadrenamecommands')
-def download_rename_commands():
+@app.route('/downloadrenamecommandsunix')
+def download_rename_commands_unix():
     '''
-    This function downloads the commands to create renamed files
+    This function downloads the commands to create renamed files (UNIX)
     '''
-    path = "files/rename_commands.txt"
+    path = "files/rename_commands_unix.txt"
+    return send_file(path, as_attachment=True)
+
+@app.route('/downloadrenamecommandswin')
+def download_rename_commands_win():
+    '''
+    This function downloads the commands to create renamed files (Windows)
+    '''
+    path = "files/rename_commands_win.txt"
     return send_file(path, as_attachment=True)
 
 @app.route('/downloadiiif')
@@ -107,6 +115,9 @@ def input_vernon():
         if imageType == 'diu':
             diu = True
 
+        #if imageType == 'other':
+        #    other = True
+
         # Establish XML Trees for Vernon and LUNA
         from xml.dom import minidom
         import xml.etree.cElementTree as ET
@@ -116,7 +127,8 @@ def input_vernon():
         luna_root = LUNA_ET.Element("recordList")
 
         # Initialise text files for output
-        rename_command_file = open("files/rename_commands.txt", "w")
+        rename_command_file_unix = open("files/rename_commands_unix.txt", "w")
+        rename_command_file_win = open("files/rename_commands_win.txt", "w")
         image_list_file = open("files/image_list.txt", "w")
 
         # Initialise image list for tail derivation
@@ -164,6 +176,10 @@ def input_vernon():
                 suffix = metadata.get_suffix(format)
                 # The imageRef in this case is the whole string
                 metadata.imageRef = imageNameStr
+                #imageRefs = imageNameStr.split(".")
+                #print(imageRefs[0])
+                #metadata.oldIdVernon = imageRefs[0]
+                metadata.oldId = imageNameStr
 
             if diu:
                 # For DIU images, we need to ask for accession no and view to be provided as well as image name
@@ -199,9 +215,9 @@ def input_vernon():
                 format = formats[1]
                 seven_digit_id = metadata.imageRef[0:7]
 
-
             # Call Vernon API to get JSON payload based on accessionNo
             vernon_items = metadata.get_items(metadata.accessionNo)
+            print(vernon_items)
             metadata.name = metadata.get_name(vernon_items)
             metadata.systemid = metadata.get_sysid(vernon_items)
             metadata.dateStr = metadata.get_date(vernon_items)
@@ -226,23 +242,30 @@ def input_vernon():
             metadata.imRefStr = seven_digit_id[0:4] + "000-" + seven_digit_id[0:4] + "999\\" + seven_digit_id + str(suffix) +  newtail + ".jpg"
             metadata.masterStr = "\\\sg.datastore.ed.ac.uk\sg\lib\groups\lac-store\mimed\\" + level + "\\" + seven_digit_id[0:4] + "000-" + seven_digit_id[0:4] + "999\\" + seven_digit_id + str(suffix) + newtail + "." + str(format)
             metadata.caption = seven_digit_id + str(suffix) + newtail + ".jpg" + " (" + metadata.imageRef + ")"
-            metadata.briefDesc = metadata.name + " (" + metadata.makerStr + ") : " + metadata.viewStr
+            metadata.briefDesc = metadata.name + " (" + metadata.makerStr + ") : " + metadata.viewStr + " view"
             metadata.fileName = seven_digit_id + str(suffix) + newtail + "." + str(format)
 
             # Build Vernon XML
-            ET.SubElement(doc, "im_ref").text = "Image(Electronic)"
-            ET.SubElement(doc, "im_format").text = metadata.imRefStr
+            ET.SubElement(doc, "im_format").text = "Image(Electronic)"
+            ET.SubElement(doc, "im_ref").text = metadata.imRefStr
             ET.SubElement(doc, "master").text = metadata.masterStr
-            ET.SubElement(doc, "user_text_2").text = metadata.imageRef
+            ET.SubElement(doc, "user_text_2").text = metadata.oldId
             ET.SubElement(doc, "photographer").text = metadata.creatorNameStr
             ET.SubElement(doc, "notes").text = metadata.creatorNotes
-            ET.SubElement(doc, "credit_line").text = metadata.creditLine
+            print(metadata.creditLine)
+            creditParse = metadata.creditLine.encode("ascii", "xmlcharrefreplace")
+            print(creditParse)
+            ET.SubElement(doc, "credit_line").text = creditParse.decode("ascii")
             ET.SubElement(doc, "ref").text = str(metadata.accessionNo).zfill(4)
             ET.SubElement(doc, "publication_status").text = metadata.publicationStatus
             ET.SubElement(doc, "collection").text = metadata.collection
-            ET.SubElement(doc, "briefDesc").text = metadata.briefDesc
+            #ET.SubElement(doc, "brief_desc").text = metadata.briefDesc.encode("ascii", "xmlcharrefreplace")
+            #We are not going to get special characters in most of the metadata, but it's likely here, especially with sharps and flats,
+            #which Vernon expects decoded to their html codes before importing. We need to get the character and then turn it into a string from a binary.
+            briefParse = metadata.briefDesc.encode("ascii", "xmlcharrefreplace")
+            ET.SubElement(doc, "brief_desc").text = briefParse.decode("ascii")
             ET.SubElement(doc, "caption").text = metadata.caption
-            ET.SubElement(doc, "thumbRef").text = metadata.imRefStr
+            ET.SubElement(doc, "thumbref").text = metadata.imRefStr
 
             # Build LUNA XML (very complicated set-up)
             field = LUNA_ET.SubElement(luna_doc, "field")
@@ -253,7 +276,7 @@ def input_vernon():
             entity = LUNA_ET.SubElement(luna_doc, "entity")
             entity.set("name", "id_number")
             field = LUNA_ET.SubElement(entity, "field")
-            field.set("name", "catalogue_number")
+            field.set("name", "work_catalogue_number")
             value = LUNA_ET.SubElement(field, "value")
             value.text = str(metadata.accessionNo).zfill(4)
 
@@ -265,18 +288,22 @@ def input_vernon():
             value.text = metadata.name
 
             entity = LUNA_ET.SubElement(luna_doc, "entity")
-            entity.set("name", "date")
-            field = LUNA_ET.SubElement(entity, "field")
-            field.set("name", "work_date")
-            value = LUNA_ET.SubElement(field, "value")
-            value.text = metadata.dateStr
-
-            entity = LUNA_ET.SubElement(luna_doc, "entity")
             entity.set("name", "creator")
             field = LUNA_ET.SubElement(entity, "field")
             field.set("name", "work_creator_details")
             value = LUNA_ET.SubElement(field, "value")
             value.text = metadata.makerStr
+            field = LUNA_ET.SubElement(entity, "field")
+            field.set("name", "work_creator_name")
+            value = LUNA_ET.SubElement(field, "value")
+            value.text = metadata.makerStr
+
+            entity = LUNA_ET.SubElement(luna_doc, "entity")
+            entity.set("name", "dates")
+            field = LUNA_ET.SubElement(entity, "field")
+            field.set("name", "work_display_date")
+            value = LUNA_ET.SubElement(field, "value")
+            value.text = metadata.dateStr
 
             entity = LUNA_ET.SubElement(luna_doc, "entity")
             entity.set("name", "rights")
@@ -295,19 +322,11 @@ def input_vernon():
             '''
 
             entity = LUNA_ET.SubElement(luna_doc, "entity")
-            entity.set("name", "repro_id_number")
+            entity.set("name", "repro_record")
             field = LUNA_ET.SubElement(entity, "field")
             field.set("name", "repro_record_id")
             value = LUNA_ET.SubElement(field, "value")
             value.text = metadata.fileName
-            field = LUNA_ET.SubElement(entity, "field")
-            field.set("name", "repro_id_number")
-            value = LUNA_ET.SubElement(field, "value")
-            value.text = metadata.imRefStr
-            field = LUNA_ET.SubElement(entity, "field")
-            field.set("name", "repro_old_id_number")
-            value = LUNA_ET.SubElement(field, "value")
-            value.text = metadata.imageNameStr
 
             entity = LUNA_ET.SubElement(luna_doc, "entity")
             entity.set("name", "repro_title")
@@ -317,19 +336,52 @@ def input_vernon():
             value.text = metadata.briefDesc
 
             entity = LUNA_ET.SubElement(luna_doc, "entity")
+            entity.set("name", "repro_id_number")
+            field = LUNA_ET.SubElement(entity, "field")
+            field.set("name", "repro_id_number")
+            value = LUNA_ET.SubElement(field, "value")
+            value.text = metadata.imRefStr
+            field = LUNA_ET.SubElement(entity, "field")
+            field.set("name", "repro_old_id_number")
+            value = LUNA_ET.SubElement(field, "value")
+            value.text = metadata.oldId
+
+            entity = LUNA_ET.SubElement(luna_doc, "entity")
+            entity.set("name", "repro_creator")
+            field = LUNA_ET.SubElement(entity, "field")
+            field.set("name", "repro_creator_name")
+            value = LUNA_ET.SubElement(field, "value")
+            value.text = metadata.creatorNameStr
+            field = LUNA_ET.SubElement(entity, "field")
+            field.set("name", "repro_creator_role_description")
+            value = LUNA_ET.SubElement(field, "value")
+            value.text = "Creator"
+
+            entity = LUNA_ET.SubElement(luna_doc, "entity")
             entity.set("name", "repro_rights")
             field = LUNA_ET.SubElement(entity, "field")
             field.set("name", "repro_rights_statement")
             value = LUNA_ET.SubElement(field, "value")
             value.text = metadata.reproRights
 
+            entity = LUNA_ET.SubElement(luna_doc, "entity")
+            entity.set("name", "repro_publication_status")
+            field = LUNA_ET.SubElement(entity, "field")
+            field.set("name", "repro_publication_status")
+            value = LUNA_ET.SubElement(field, "value")
+            value.text = "Full public access"
+
             image_list_file.write(metadata.fileName + ",")
 
             image_list.append({"accession": metadata.accessionNo,
                             "tail": newtail.replace("-","")})
 
-            renameStr = "cp " + metadata.imageRef + " " + metadata.fileName
-            rename_command_file.write(renameStr + "\n")
+            renameStrUNIX = "cp " + metadata.imageRef + " " + metadata.fileName
+            rename_command_file_unix.write(renameStrUNIX + "\n")
+
+            renameStrUNIX = "copy " + metadata.imageRef + " " + metadata.fileName
+            rename_command_file_win.write(renameStrUNIX + "\n")
+
 
         rough_string = ET.tostring(root, 'utf-8')
         reparsed = minidom.parseString(rough_string)
@@ -357,38 +409,51 @@ def input_vernon_link():
         return render_template("public/templates/input_vernon_link.html")
 
     try:
-        imageBlock = request.form["image_names"].split(",")
-        imageType = request.form["image_types"]
+        images = request.form["image_names"]
+        last_char = images[len(images) - 1]
+        if last_char == ",":
+            images = images[:-1]
+        imageBlock = images.split(",")
+
+        #imageType = request.form["image_types"]
 
         # Derive image types variables
-        arnold = False
-        diu = False
+        #arnold = False
+        #diu = False
 
-        if imageType == 'arnold':
-            arnold = True
+        #if imageType == 'arnold':
+        #    arnold = True
 
-        if imageType == 'diu':
-            diu = True
+        #if imageType == 'diu':
+        #    diu = True
 
         from xml.dom import minidom
         import xml.etree.cElementTree as ET
         root = ET.Element("recordSet")
 
-        for imageNameStr in imageBlock :
+        for imageNameStr in imageBlock:
             doc = ET.SubElement(root, "record")
             metadata = Metadata()
-            if arnold:
-                metadata.avNumber = imageNameStr[1:7]
-                vernon_items = metadata.get_items_for_link(metadata.avNumber)
 
-            if diu:
+            #if arnold:
+            #    metadata.avNumber = imageNameStr
+            #    print(metadata.avNumber)
+            #    vernon_items = metadata.get_items_for_link(metadata.avNumber)
+
+            #if diu:
                 # For DIU images, we need to ask for accession no and view to be provided as well as image name
                 # Split these out
-                image_bits = imageNameStr.split(":")
-                metadata.accessionNo = image_bits[1].lstrip("0")
-                vernon_items = metadata.get_items(metadata.accessionNo)
+            #vernon_items = metadata.get_items_for_link(imageNameStr[0:7])
 
-            metadata.systemid = metadata.get_sysid(vernon_items)
+            vernon_items = metadata.get_link_info(imageNameStr)
+            print(vernon_items)
+            metadata.accessionNo = metadata.get_av_ref(vernon_items)
+            print(metadata.accessionNo)
+            object_items = metadata.get_items(metadata.accessionNo)
+            print(object_items)
+            metadata.systemid = metadata.get_sysid(object_items)
+            print(metadata.systemid)
+
             searchAVBits = imageNameStr.split(".")
             metadata.searchAV = searchAVBits[0]
             vernon_av_items = metadata.get_av_items(metadata.searchAV)
@@ -402,6 +467,36 @@ def input_vernon_link():
         pretty_string = reparsed.toprettyxml(indent="\t")
         metadata_file = open("files/vernonlink.xml", "w")
         metadata_file.write(pretty_string)
+        metadata_file.close()
+
+        from xml.dom import minidom
+        import xml.etree.cElementTree as ET
+        root = ET.Element("recordSet")
+
+        for imageNameStr in imageBlock:
+            doc = ET.SubElement(root, "record")
+            metadata = Metadata()
+            print(imageNameStr)
+            metadata.searchAV = imageNameStr.replace(".jpg","")
+            metadata.searchAV = imageNameStr.replace(".tif","")
+            print(metadata.searchAV)
+            vernon_av_items = metadata.get_av_items(metadata.searchAV)
+            metadata.av_systemid = metadata.get_av_sysid(vernon_av_items)
+            print(metadata.av_systemid)
+            luna_items = metadata.get_luna_items(imageNameStr)
+            metadata.lunaURL = "https://images.is.ed.ac.uk/luna/servlet/detail/" + metadata.get_luna_url(luna_items)
+            metadata.imRefIIIF = metadata.lunaURL.replace('detail', 'iiif') + "/full/full/0/default.jpg"
+            metadata.imRefIIIF = metadata.imRefIIIF.replace('https:', 'http:')
+
+            ET.SubElement(doc, "id").text = metadata.av_systemid
+            ET.SubElement(doc, "im_ref").text = metadata.imRefIIIF
+            ET.SubElement(doc, "luna_url").text = metadata.lunaURL
+
+        iiif_string = ET.tostring(root, 'utf-8')
+        reparsed_iiif = minidom.parseString(iiif_string)
+        pretty_iiif_string = reparsed_iiif.toprettyxml(indent="\t")
+        metadata_file = open("files/iiif.xml", "w")
+        metadata_file.write(pretty_iiif_string)
         metadata_file.close()
 
     except:
