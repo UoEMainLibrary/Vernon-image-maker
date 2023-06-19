@@ -11,6 +11,7 @@
       <hr>
       <form action="/choice" method="POST">
           <h2>Choose an action</h2>
+          <a href="{{ url_for('get_max_id') }}"><p>0. Find the next ID for an Object's AV Link ID in Vernon</p></a>
           <a href="{{ url_for('input_vernon') }}"><p>1. Get Vernon and LUNA XMLs for import</p></a>
           <a href="{{ url_for('input_vernon_link') }}"><p>2. Get Vernon and IIIF linking XML for update</p></a>
       </form>

@@ -1,0 +1,17 @@
+{% extends "public/templates/public_template.html" %}
+
+{% block title %}Convert{% endblock %}
+
+{% block main %}
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <h2>AV Link Id</h2>
+      <p>The next ID you should enter into Vernon under other Id AV Link Id is...</p>
+      <h3>{{data}}</h3>
+      <br>
+      <a href="{{ url_for('choice') }}"><p>Back to beginning</p></a>
+    </div>
+  </div>
+</div>
+{% endblock %}

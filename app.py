@@ -135,7 +135,7 @@ def input_vernon():
         image_list = []
 
         # Read through images
-        for imageNameStr in imageBlock :
+        for imageNameStr in imageBlock:
             print(imageNameStr)
 
             newtail = ''
@@ -186,7 +186,7 @@ def input_vernon():
                 # Split these out
                 image_bits = imageNameStr.split(":")
                 # Accession No is the second bit
-                metadata.accessionNo =image_bits[1].lstrip("0")
+                metadata.accessionNo =image_bits[1]
                 print("AC" + metadata.accessionNo)
                 # View is the third bit
                 metadata.view_bit = image_bits[2]
@@ -204,6 +204,11 @@ def input_vernon():
                     metadata.advanced_view_bit = metadata.view_bit[2]
                     viewpart = metadata.get_view(metadata.advanced_view_bit)
                     metadata.viewStr = metadata.viewStr + " " + viewpart.lower()
+                try:
+                    metadata.creatorNameStr = image_bits[3]
+                except Exception:
+                    print("defaulting to DIU")
+
                 # Image name is the first bit
                 metadata.imageRef = image_bits[0]
                 print(metadata.imageRef)
@@ -238,32 +243,44 @@ def input_vernon():
             level = 'Crops'
             if suffix == "d":
                 level = 'Derivatives'
+            print(metadata.imageRef)
+            if "-" in metadata.imageRef:
+                full_name = metadata.imageRef[0:len(metadata.imageRef) - 4]
+            else:
+                full_name = seven_digit_id + str(suffix) + newtail
+            print(full_name)
 
-            metadata.imRefStr = seven_digit_id[0:4] + "000-" + seven_digit_id[0:4] + "999\\" + seven_digit_id + str(suffix) +  newtail + ".jpg"
-            metadata.masterStr = "\\\sg.datastore.ed.ac.uk\sg\lib\groups\lac-store\mimed\\" + level + "\\" + seven_digit_id[0:4] + "000-" + seven_digit_id[0:4] + "999\\" + seven_digit_id + str(suffix) + newtail + "." + str(format)
-            metadata.caption = seven_digit_id + str(suffix) + newtail + ".jpg" + " (" + metadata.imageRef + ")"
+            metadata.imRefStr = seven_digit_id[0:4] + "000-" + seven_digit_id[0:4] + "999\\" + full_name  + ".jpg"
+            print(metadata.imRefStr)
+            metadata.masterStr = "\\\sg.datastore.ed.ac.uk\sg\lib\groups\lac-store\mimed\\" + level + "\\" + seven_digit_id[0:4] + "000-" + seven_digit_id[0:4] + "999\\" + full_name + "." + str(format)
+            print(metadata.masterStr)
+
+            metadata.caption = full_name + ".jpg" + " (" + metadata.imageRef + ")"
             metadata.briefDesc = metadata.name + " (" + metadata.makerStr + ") : " + metadata.viewStr + " view"
-            metadata.fileName = seven_digit_id + str(suffix) + newtail + "." + str(format)
+            metadata.fileName = full_name + "." + str(format)
 
             # Build Vernon XML
             ET.SubElement(doc, "im_format").text = "Image(Electronic)"
             ET.SubElement(doc, "im_ref").text = metadata.imRefStr
             ET.SubElement(doc, "master").text = metadata.masterStr
-            ET.SubElement(doc, "user_text_2").text = metadata.oldId
+            if metadata.oldId:
+                ET.SubElement(doc, "user_text_2").text = metadata.oldId
             ET.SubElement(doc, "photographer").text = metadata.creatorNameStr
             ET.SubElement(doc, "notes").text = metadata.creatorNotes
-            print(metadata.creditLine)
-            creditParse = metadata.creditLine.encode("ascii", "xmlcharrefreplace")
-            print(creditParse)
-            ET.SubElement(doc, "credit_line").text = creditParse.decode("ascii")
+            #print(metadata.creditLine)
+            #creditParse = metadata.creditLine.encode("ascii", "xmlcharrefreplace")
+            #print(creditParse)
+            #ET.SubElement(doc, "credit_line").text = creditParse.decode("ascii")
+            ET.SubElement(doc, "credit_line").text = metadata.creditLine
             ET.SubElement(doc, "ref").text = str(metadata.accessionNo).zfill(4)
             ET.SubElement(doc, "publication_status").text = metadata.publicationStatus
             ET.SubElement(doc, "collection").text = metadata.collection
             #ET.SubElement(doc, "brief_desc").text = metadata.briefDesc.encode("ascii", "xmlcharrefreplace")
             #We are not going to get special characters in most of the metadata, but it's likely here, especially with sharps and flats,
             #which Vernon expects decoded to their html codes before importing. We need to get the character and then turn it into a string from a binary.
-            briefParse = metadata.briefDesc.encode("ascii", "xmlcharrefreplace")
-            ET.SubElement(doc, "brief_desc").text = briefParse.decode("ascii")
+            #briefParse = metadata.briefDesc.encode("ascii", "xmlcharrefreplace")
+            #ET.SubElement(doc, "brief_desc").text = briefParse.decode("ascii")
+            ET.SubElement(doc, "brief_desc").text = metadata.briefDesc
             ET.SubElement(doc, "caption").text = metadata.caption
             ET.SubElement(doc, "thumbref").text = metadata.imRefStr
 
@@ -383,12 +400,21 @@ def input_vernon():
             rename_command_file_win.write(renameStrUNIX + "\n")
 
 
-        rough_string = ET.tostring(root, 'utf-8')
-        reparsed = minidom.parseString(rough_string)
-        pretty_string = reparsed.toprettyxml(indent="\t")
-        metadata_file = open("files/vernon.xml", "w")
-        metadata_file.write(pretty_string)
-        metadata_file.close()
+        #rough_string = ET.tostring(root)
+        #brief_parse = rough_string("ascii", "xmlcharrefreplace")
+        #parsed_again = brief_parse.decode("ascii")
+        #reparsed = minidom.parseString(parsed_again)
+        #reparsed = minidom.parseString(rough_string)
+        #pretty_string = reparsed.toprettyxml(indent="\t")
+        #print(reparsed)
+        #metadata_file = open("files/vernon.xml", "w")
+        #metadata_file.write(pretty_string)
+        #metadata_file.close()
+
+        #Write to XML file. For Vernon, the xml_declaration is crucial, as it expects special chars to be
+        #rendered as &#xxx; html codes.
+        with open('files/vernon.xml', 'wb') as metadata_file:
+            ET.ElementTree(root).write(metadata_file, xml_declaration=True)
 
         rough_luna_string = LUNA_ET.tostring(luna_root, 'utf-8')
         luna_reparsed = minidom.parseString(rough_luna_string)
@@ -448,6 +474,7 @@ def input_vernon_link():
             vernon_items = metadata.get_link_info(imageNameStr)
             print(vernon_items)
             metadata.accessionNo = metadata.get_av_ref(vernon_items)
+            metadata.accessionNo = metadata.accessionNo.zfill(4)
             print(metadata.accessionNo)
             object_items = metadata.get_items(metadata.accessionNo)
             print(object_items)
@@ -504,50 +531,40 @@ def input_vernon_link():
 
     return render_template("public/templates/download_vernon_link.html")
 
-@app.route("/inputiiif", methods=["GET", "POST"])
-def input_iiif():
-
-    if request.method == "GET":
-        return render_template("public/templates/input_iiif.html")
-
-# add some server side validation in addition to the browser stuff
+@app.route("/getmaxid", methods=["GET", "POST"])
+def get_max_id():
+    import re
+    metadata = Metadata()
+    #if request.method == "GET":
+    #    return render_template("public/templates/get_max_id.html")
 
     try:
+        data = metadata.get_all_mimed()
+        other_id_list = []
+        n = 0
 
-        imageBlock = request.form["image_names"].split(",")
-        from xml.dom import minidom
-        import xml.etree.cElementTree as ET
-        root = ET.Element("recordSet")
-
-        for imageNameStr in imageBlock :
-            doc = ET.SubElement(root, "record")
-            metadata = Metadata()
-            metadata.searchAV = imageNameStr.replace(".jpg","")
-            metadata.searchAV = imageNameStr.replace(".tif","")
-            vernon_av_items = metadata.get_av_items(metadata.searchAV)
-            metadata.av_systemid = metadata.get_av_sysid(vernon_av_items)
-            luna_items = metadata.get_luna_items(imageNameStr)
-            metadata.lunaURL = "https://images.is.ed.ac.uk/luna/servlet/detail/" + metadata.get_luna_url(luna_items)
-            metadata.imRefIIIF = metadata.lunaURL.replace('detail', 'iiif') + "/full/full/0/default.jpg"
-            metadata.imRefIIIF = metadata.imRefIIIF.replace('https:', 'http:')
-
-            ET.SubElement(doc, "id").text = metadata.av_systemid
-            ET.SubElement(doc, "im_ref").text = metadata.imRefIIIF
-            ET.SubElement(doc, "luna_url").text = metadata.lunaURL
-
-        rough_string = ET.tostring(root, 'utf-8')
-        reparsed = minidom.parseString(rough_string)
-        pretty_string = reparsed.toprettyxml(indent="\t")
-        metadata_file = open("files/iiif.xml", "w")
-        metadata_file.write(pretty_string)
-        metadata_file.close()
-
+        for record in data["_embedded"]["records"]:
+            n += 1
+            for other_id in record["other_id_group"]:
+                other_id_val = other_id["other_id"]
+                # if other_id_val[0] == "0" and len(other_id_val) == 7 and other_id_val[6] != ".":
+                pattern = re.compile("^0\d{6}$")
+                if pattern.match(other_id_val):
+                    other_id_list.append(other_id_val)
+            max_no = max(other_id_list)
     except:
         return Response("error ", sys.exc_info()[0])
 
-    return render_template("public/templates/download_iiif.html")
+    print(max_no)
+
+    new_max_no = str(int(max_no) + 1).zfill(7)
+
+    print(new_max_no)
+
+
+    return render_template("public/templates/get_max_id.html", data=new_max_no)
 
 
 if __name__ == "__main__":
-    app.run("0.0.0.0", port=80, debug=True)
+    app.run("0.0.0.0", port=3000, debug=True)
 

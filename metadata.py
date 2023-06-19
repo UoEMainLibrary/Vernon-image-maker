@@ -37,7 +37,7 @@ class Metadata:
             'l': 'Left',
             't': 'Top',
             'q': 'Quarter',
-            's': 'Side View',
+            's': 'Side',
             'r': 'Right',
             'f': 'Front',
             'b': 'Back',
@@ -101,14 +101,26 @@ class Metadata:
             version = 'My new User-Agent'
 
         url = vernon_api + "accession_no:" + accession_no + "&fields=id,name,prod_pri_date,prod_pri_person_name,av,user_sym_37,user_sym_20"
-
+        print(url)
         myopener = MyOpener()
         response = myopener.open(url)
         try:
             data = response.read().decode("utf-8")
             return json.loads(data)
         except Exception:
-            print("nothing to run")
+            try:
+                #This is horrible! It seems that some 4 digit IDs don't pick up from the API with their leading zeros.
+                #Second attempt taking off the leading zero works in this instance.
+                accession_no = accession_no.lstrip("0")
+                url = vernon_api + "accession_no:" + accession_no + "&fields=id,name,prod_pri_date,prod_pri_person_name,av,user_sym_37,user_sym_20"
+                print(url)
+                myopener = MyOpener()
+                response = myopener.open(url)
+                print(accession_no)
+                data = response.read().decode("utf-8")
+                return json.loads(data)
+            except Exception:
+                print("nothing to run")
 
     def get_creator_notes(self, creator_bit):
         """
@@ -424,7 +436,7 @@ class Metadata:
             MyOpener
             """
             version = 'My new User-Agent'
-
+        print(imageNameStr)
         url = vernon_api + "search:" + imageNameStr + "&fields=id,im_ref,user_sym_13,user_sym_23,ref"
         print(url)
         myopener = MyOpener()
@@ -471,3 +483,27 @@ class Metadata:
         except Exception:
             luna_url = ''
         return luna_url
+
+    def get_all_mimed(self):
+        """
+            Get Object info from API and return as json
+            :param url: the API URL
+            :return data: the returned json
+        """
+        from urllib.request import FancyURLopener
+        import json
+        url = "http://vernonapi.is.ed.ac.uk/vcms-api/oecgi4.exe/datafiles/OBJECT/?query=squery:MIMEd_Everything&fields=other_id&limit=10000"
+
+        class MyOpener(FancyURLopener):
+            """
+            MyOpener
+            """
+            version = 'My new User-Agent'
+
+        myopener = MyOpener()
+        response = myopener.open(url)
+        try:
+            data = response.read().decode("utf-8")
+            return json.loads(data)
+        except Exception:
+            print("nothing to run")
