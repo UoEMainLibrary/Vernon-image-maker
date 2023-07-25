@@ -1,2 +1,2 @@
-# DLIB012-JSON-Builder
-The flask app to create JSON config files for Archivematica
+# Vernon-image-maker
+The flask app to create XML files needed to run images into Vernon and LUNA and get IIIF references
