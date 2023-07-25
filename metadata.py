@@ -137,7 +137,7 @@ class Metadata:
             'f': 'Digital images',
             'g': 'Greyscale scans from negatives or prints',
             'h': 'Colour digital images and colour scans from negatives or prints',
-            'i': 'A camera with gunpowder etc',
+            'i': 'Colour digital images',
             'j': 'Colour digital images',
             'l': 'Digital images',
             'v': 'Digital images'
