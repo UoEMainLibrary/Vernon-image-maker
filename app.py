@@ -474,6 +474,7 @@ def input_vernon_link():
             vernon_items = metadata.get_link_info(imageNameStr)
             print(vernon_items)
             metadata.accessionNo = metadata.get_av_ref(vernon_items)
+
             metadata.accessionNo = metadata.accessionNo.zfill(4)
             print(metadata.accessionNo)
             object_items = metadata.get_items(metadata.accessionNo)
@@ -527,7 +528,10 @@ def input_vernon_link():
         metadata_file.close()
 
     except:
-        return Response("error ", sys.exc_info()[0])
+        print("error")
+        #return Response("error ", sys.exc_info()[0])
+    #sys.exc_info()[0]
+
 
     return render_template("public/templates/download_vernon_link.html")
 

@@ -176,7 +176,7 @@ class Metadata:
         :return ref:
         """
         try:
-            ref = vernon_items["_embedded"]["records"][0]['ref_group'][0]['ref']
+            ref = vernon_items["_embedded"]["records"][0]['user_sym_18']
         except Exception:
             ref = ''
         return ref
