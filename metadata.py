@@ -437,7 +437,7 @@ class Metadata:
             """
             version = 'My new User-Agent'
         print(imageNameStr)
-        url = vernon_api + "search:" + imageNameStr + "&fields=id,im_ref,user_sym_13,user_sym_23,ref"
+        url = vernon_api + "search:" + imageNameStr + "&fields=id,im_ref,user_sym_13,user_sym_23,ref,user_sym_18"
         print(url)
         myopener = MyOpener()
         response = myopener.open(url)
