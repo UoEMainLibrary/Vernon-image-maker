@@ -104,10 +104,13 @@ def input_vernon():
         # Receive form data (image filenames and image types)
         imageBlock = request.form["image_names"].split(",")
         imageType = request.form["image_types"]
+        collection = request.form["collection"]
 
         # Derive image types variables
         arnold = False
         diu = False
+
+
 
         if imageType == 'arnold':
             arnold = True
@@ -144,7 +147,9 @@ def input_vernon():
             doc = ET.SubElement(root, "record")
             luna_doc = LUNA_ET.SubElement(luna_root, "record")
             metadata = Metadata()
-
+            metadata.collection_title = metadata.get_collection_title(collection)
+            print(metadata.collection_title)
+            collection_folder = collection.lower()
             # Specific processing for Arnold-style images
             if arnold:
                 # Creator is identified by the fourth character in the string
@@ -252,7 +257,7 @@ def input_vernon():
 
             metadata.imRefStr = seven_digit_id[0:4] + "000-" + seven_digit_id[0:4] + "999\\" + full_name  + ".jpg"
             print(metadata.imRefStr)
-            metadata.masterStr = "\\\sg.datastore.ed.ac.uk\sg\lib\groups\lac-store\mimed\\" + level + "\\" + seven_digit_id[0:4] + "000-" + seven_digit_id[0:4] + "999\\" + full_name + "." + str(format)
+            metadata.masterStr = "\\\sg.datastore.ed.ac.uk\sg\lib\groups\lac-store\\" + collection_folder + "\\" + level + "\\" + seven_digit_id[0:4] + "000-" + seven_digit_id[0:4] + "999\\" + full_name + "." + str(format)
             print(metadata.masterStr)
 
             metadata.caption = full_name + ".jpg" + " (" + metadata.imageRef + ")"
@@ -274,7 +279,7 @@ def input_vernon():
             ET.SubElement(doc, "credit_line").text = metadata.creditLine
             ET.SubElement(doc, "ref").text = str(metadata.accessionNo).zfill(4)
             ET.SubElement(doc, "publication_status").text = metadata.publicationStatus
-            ET.SubElement(doc, "collection").text = metadata.collection
+            ET.SubElement(doc, "collection").text = metadata.collection_title
             #ET.SubElement(doc, "brief_desc").text = metadata.briefDesc.encode("ascii", "xmlcharrefreplace")
             #We are not going to get special characters in most of the metadata, but it's likely here, especially with sharps and flats,
             #which Vernon expects decoded to their html codes before importing. We need to get the character and then turn it into a string from a binary.
@@ -441,6 +446,8 @@ def input_vernon_link():
             images = images[:-1]
         imageBlock = images.split(",")
 
+        print(imageBlock)
+
         #imageType = request.form["image_types"]
 
         # Derive image types variables
@@ -458,6 +465,7 @@ def input_vernon_link():
         root = ET.Element("recordSet")
 
         for imageNameStr in imageBlock:
+            print(imageNameStr)
             doc = ET.SubElement(root, "record")
             metadata = Metadata()
 
@@ -500,18 +508,18 @@ def input_vernon_link():
         from xml.dom import minidom
         import xml.etree.cElementTree as ET
         root = ET.Element("recordSet")
-
         for imageNameStr in imageBlock:
             doc = ET.SubElement(root, "record")
             metadata = Metadata()
-            print(imageNameStr)
             metadata.searchAV = imageNameStr.replace(".jpg","")
             metadata.searchAV = imageNameStr.replace(".tif","")
             print(metadata.searchAV)
             vernon_av_items = metadata.get_av_items(metadata.searchAV)
+            print(vernon_av_items)
             metadata.av_systemid = metadata.get_av_sysid(vernon_av_items)
             print(metadata.av_systemid)
             luna_items = metadata.get_luna_items(imageNameStr)
+            print(luna_items)
             metadata.lunaURL = "https://images.is.ed.ac.uk/luna/servlet/detail/" + metadata.get_luna_url(luna_items)
             metadata.imRefIIIF = metadata.lunaURL.replace('detail', 'iiif') + "/full/full/0/default.jpg"
             metadata.imRefIIIF = metadata.imRefIIIF.replace('https:', 'http:')
@@ -570,5 +578,5 @@ def get_max_id():
 
 
 if __name__ == "__main__":
-    app.run("0.0.0.0", port=3000, debug=True)
+    app.run("0.0.0.0", port=5002, debug=True)
 

@@ -24,7 +24,20 @@ class Metadata:
         self.reproRights = "© The University of Edinburgh"
         self.workRecordId = ""
         self.oldId = ""
+        self.collection_title = "MIMEd"
 
+    def get_collection_title(self, collection):
+        """
+        This function returns a readable string for the view, based on a code
+        :param view_bit:
+        :return view in string form:
+        """
+        return {
+            "geology": "Cockburn Collection",
+            "mimed" : "MIMEd Collection",
+            "art" : "Art Collection",
+            "anatomy" : "Anatomy Collection"
+        }[collection]
 
     def get_view(self, view_bit):
         """
@@ -175,10 +188,14 @@ class Metadata:
         :param vernon_items:
         :return ref:
         """
+        print("getting av ref")
         try:
-            ref = vernon_items["_embedded"]["records"][0]['user_sym_18']
+            ref = vernon_items["_embedded"]["records"][0]['ref_group'][0]['ref']
+            print(ref)
         except Exception:
             ref = ''
+            print("failed to get accession_no")
+
         return ref
 
     def get_date (self, vernon_items):
@@ -453,19 +470,28 @@ class Metadata:
         :param imageNameStr:
         :return data:
         """
-        from urllib.request import FancyURLopener
+        import urllib.request
         import json
+        import ssl
         luna_api = 'https://images.is.ed.ac.uk/luna/servlet/as/fetchMediaSearch?fullData=true&bs=10000&q=Repro_Record_ID='
 
-        class MyOpener(FancyURLopener):
-            """
-            MyOpener
-            """
-            version = 'My new User-Agent'
+        #Need to deal with SSL for this API
+        try:
+            _create_unverified_https_context = ssl._create_unverified_context
+        except AttributeError:
+            # Legacy Python that doesn't verify HTTPS certificates by default
+            pass
+        else:
+            # Handle target environment that doesn't support HTTPS verification
+            ssl._create_default_https_context = _create_unverified_https_context
 
         url = luna_api + imageNameStr
-        myopener = MyOpener()
-        response = myopener.open(url)
+        #myopener = MyOpener()
+        try:
+            response = urllib.request.urlopen(url)
+        except urllib.error.URLError as e:
+            print(e.reason)
+
         try:
             data = response.read().decode("utf-8")
             return json.loads(data)

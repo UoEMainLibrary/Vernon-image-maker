@@ -23,6 +23,16 @@
         </p>
         <hr>
         <div class="form-group">
+          <label>Collection</label>
+          <select class="form-control" id="collection" name="collection"
+                 placeholder="Choose a collection" required>
+              <optgroup label="Collection">
+                <option value="mimed">MIMEd</option>
+                <option value="art">Art</option>
+                <option value="geology">Geology</option>
+                <option value="anatomy">Anatomy</option>
+              </optgroup>
+            </select>
           <label>Image Names</label>
           <input type="textarea" class="form-control" id="image_names" name="image_names"
                  placeholder="Image Names" required>
