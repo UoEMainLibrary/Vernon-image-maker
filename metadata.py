@@ -247,6 +247,19 @@ class Metadata:
             avs = ''
         return avs
 
+    def get_pub_status(self, publication_status):
+        """
+        Return a publication status based on a character
+        :param publication_status:
+        :return:
+        """
+        print(publication_status)
+        return {
+            'f': 'Full Public Access',
+            'n': 'No Access',
+            '': 'Full Public Access'
+        }[publication_status]
+
     def get_creator(self, creator_bit):
         """
         Pick the image creator out of the returned JSON array for the Vernon object
@@ -271,6 +284,7 @@ class Metadata:
 
     def derive_tail(self, image_list, accession_no):
         """
+        NB: I think this function is no longer used.
         Work out the tail for an image based on other images for that AV Id
         :param image_list:
         :param accession_no:
@@ -280,6 +294,7 @@ class Metadata:
         tail_derived = False
         newtail = ''
         for item in image_list:
+            print("ITEM" + str(item))
             list_acc = item["accession"]
             list_tail = item["tail"]
             if list_tail == '':
@@ -291,6 +306,7 @@ class Metadata:
         if tail_derived == True:
             batch_tail = int(batch_tail) + 1
             newtail = "-" + (str(batch_tail).zfill(4))
+            print(newtail)
         return newtail
 
     def get_tail(self, existing_images):
@@ -302,23 +318,31 @@ class Metadata:
         maxtail = -1
         newtail = "tail"
         avcount = 0
+
+        # Loop round each of the existing AVs for an item
         for av in existing_images:
             avcount += 1
-            print(avcount)
             avstring = str(av)
             print(avstring)
+            # Strip out the additional info Vernon puts in
             if ";" in avstring:
                 av_alls = avstring.split(";")
                 av_all = av_alls[0]
                 print(av_all)
-                if "-" in av_all:
+                # Check for -0 as sign of a tail. This isn't ideal- it will cause problems if an
+                # item has more than 1000 images, or the caption has a rogue "-0" in it.
+                # Gets us round captions that do have "-" unrelated to the tail, which is not uncommon.
+                if "-0" in av_all:
                     av_bits = av_all.split("-")
                     av_bit = av_bits[1]
                     print(av_bit)
+                    # Then strip off the format.
                     if "." in av_bit:
+                        print("I dfound a dot and am now here")
                         tailpart = av_bits[1].split(".")
                         tail = tailpart[0]
                         print("T"+tail)
+                        # Check against the existing running maxtail and move the maxtail accordingly.
                         if int(tail) > int(maxtail):
                             print(str(tail) + "vs: " + str(maxtail))
                             maxtail = tail
@@ -330,15 +354,27 @@ class Metadata:
             else:
                 newtail = ''
 
-        if avcount == 1:
-            if newtail == '':
-                newtail = '-0001'
+        print(maxtail)
 
+        # Generally if the av count is one, the new image's tail will be -0001
+        if avcount == 1:
+            if maxtail == -1:
+                newtail = '-0001'
+            else:
+                # but we should check, in case something has been deleted
+                maxtail = int(maxtail) + 1
+                newtail = "-" + (str(maxtail).zfill(4))
+
+        # If there are no AVs already, safe for this to be the tailless one
         if avcount == 0:
             newtail = ''
 
+        # Otherwise the image's tail will be one more than the max, regardless of whether
+        # the FORMAT is lower. It's better for avoiding clashes.
         if avcount > 1:
+            print("AVCOUNT is mair than wan")
             if int(maxtail) > -1:
+                print(maxtail)
                 maxtail = int(maxtail) + 1
                 newtail = "-"+(str(maxtail).zfill(4))
         return newtail
@@ -519,6 +555,30 @@ class Metadata:
         from urllib.request import FancyURLopener
         import json
         url = "http://vernonapi.is.ed.ac.uk/vcms-api/oecgi4.exe/datafiles/OBJECT/?query=squery:MIMEd_Everything&fields=other_id&limit=10000"
+
+        class MyOpener(FancyURLopener):
+            """
+            MyOpener
+            """
+            version = 'My new User-Agent'
+
+        myopener = MyOpener()
+        response = myopener.open(url)
+        try:
+            data = response.read().decode("utf-8")
+            return json.loads(data)
+        except Exception:
+            print("nothing to run")
+
+    def get_all_art(self):
+        """
+            Get Object info from API and return as json
+            :param url: the API URL
+            :return data: the returned json
+        """
+        from urllib.request import FancyURLopener
+        import json
+        url = "http://vernonapi.is.ed.ac.uk/vcms-api/oecgi4.exe/datafiles/OBJECT/?query=squery:PO.1624012981.IS-LAC-2079.5&fields=other_id&limit=10000"
 
         class MyOpener(FancyURLopener):
             """

@@ -102,15 +102,18 @@ def input_vernon():
     try:
 
         # Receive form data (image filenames and image types)
-        imageBlock = request.form["image_names"].split(",")
+        try:
+            imageBlock = request.form["image_names"].split("\r\n")
+        except Exception:
+            imageBlock = request.form["image_names"].split(",")
+
         imageType = request.form["image_types"]
         collection = request.form["collection"]
 
         # Derive image types variables
         arnold = False
         diu = False
-
-
+        other = False
 
         if imageType == 'arnold':
             arnold = True
@@ -118,8 +121,8 @@ def input_vernon():
         if imageType == 'diu':
             diu = True
 
-        #if imageType == 'other':
-        #    other = True
+        if imageType == 'other':
+            other = True
 
         # Establish XML Trees for Vernon and LUNA
         from xml.dom import minidom
@@ -139,7 +142,9 @@ def input_vernon():
 
         # Read through images
         for imageNameStr in imageBlock:
-            print(imageNameStr)
+            print(repr(imageNameStr))
+            imageNameStr.strip()
+            print(repr(imageNameStr))
 
             newtail = ''
 
@@ -181,9 +186,6 @@ def input_vernon():
                 suffix = metadata.get_suffix(format)
                 # The imageRef in this case is the whole string
                 metadata.imageRef = imageNameStr
-                #imageRefs = imageNameStr.split(".")
-                #print(imageRefs[0])
-                #metadata.oldIdVernon = imageRefs[0]
                 metadata.oldId = imageNameStr
 
             if diu:
@@ -225,6 +227,47 @@ def input_vernon():
                 format = formats[1]
                 seven_digit_id = metadata.imageRef[0:7]
 
+            if other:
+                # For non-DIU, we need to know the
+                image_bits = imageNameStr.split(":")
+                # Accession No is the second bit
+                metadata.accessionNo = image_bits[1]
+                print("AC" + metadata.accessionNo)
+                # View is the third bit
+                metadata.view_bit = image_bits[2]
+                print('VB' + metadata.view_bit)
+                metadata.viewStr = metadata.get_view(metadata.view_bit[0])
+                # X and Q rely on subsequent characters to get full information
+                if metadata.view_bit[0] == 'x':
+                    metadata.advanced_view_bit = metadata.view_bit[0:2]
+                    print("ADV" + metadata.advanced_view_bit)
+                    metadata.viewStr = metadata.get_detail_view(metadata.advanced_view_bit)
+                if metadata.view_bit[0] == 'q':
+                    metadata.advanced_view_bit = metadata.view_bit[1]
+                    viewpart = metadata.get_view(metadata.advanced_view_bit)
+                    metadata.viewStr = metadata.viewStr + " " + viewpart.lower()
+                    metadata.advanced_view_bit = metadata.view_bit[2]
+                    viewpart = metadata.get_view(metadata.advanced_view_bit)
+                    metadata.viewStr = metadata.viewStr + " " + viewpart.lower()
+                try:
+                    metadata.creatorNameStr = image_bits[3]
+                except Exception:
+                    print("defaulting to DIU")
+
+                try:
+                    metadata.publicationStatus = metadata.get_pub_status(image_bits[4])
+                except Exception:
+                    print("defaulting to Full Public Access")
+
+                # Parse format of filename and the suffix
+                mainext = image_bits[0].split(".")
+                format = mainext[1]
+                suffix = metadata.get_suffix(format)
+                # The imageRef in this case is the first bit of the string
+                metadata.imageRef = image_bits[0]
+                metadata.oldId = image_bits[0]
+
+
             # Call Vernon API to get JSON payload based on accessionNo
             vernon_items = metadata.get_items(metadata.accessionNo)
             print(vernon_items)
@@ -236,11 +279,14 @@ def input_vernon():
             if diu:
                 metadata.workRecordId = metadata.get_seven_digit(vernon_items)
 
-            if arnold:
+            if arnold or other:
                 seven_digit_id = metadata.get_seven_digit(vernon_items)
                 metadata.workRecordId = seven_digit_id
                 existing_images = metadata.get_existing_images(vernon_items)
-                newtail = metadata.derive_tail(image_list, metadata.accessionNo)
+                print(existing_images)
+                #newtail = metadata.derive_tail(image_list, metadata.accessionNo)
+                #newtail = metadata.derive_tail(existing_images, metadata.accessionNo)
+                print("NEWTAIL" + newtail)
 
                 if newtail == '':
                     newtail = metadata.get_tail(existing_images)
@@ -575,6 +621,38 @@ def get_max_id():
 
 
     return render_template("public/templates/get_max_id.html", data=new_max_no)
+
+@app.route("/getmaxidart", methods=["GET", "POST"])
+def get_max_id_art():
+    import re
+    metadata = Metadata()
+    #if request.method == "GET":
+    #    return render_template("public/templates/get_max_id.html")
+
+    try:
+        data = metadata.get_all_art()
+        other_id_list = []
+        n = 0
+        for record in data["_embedded"]["records"]:
+            n += 1
+            for other_id in record["other_id_group"]:
+                other_id_val = other_id["other_id"]
+                # if other_id_val[0] == "0" and len(other_id_val) == 7 and other_id_val[6] != ".":
+                pattern = re.compile("^0\d{6}$")
+                if pattern.match(other_id_val):
+                    other_id_list.append(other_id_val)
+            max_no = max(other_id_list)
+    except:
+        return Response("error ", sys.exc_info()[0])
+
+    print(max_no)
+
+    new_max_no = str(int(max_no) + 1).zfill(7)
+
+    print(new_max_no)
+
+
+    return render_template("public/templates/get_max_id_art.html", data=new_max_no)
 
 
 if __name__ == "__main__":
