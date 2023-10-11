@@ -284,10 +284,14 @@ def input_vernon():
                 metadata.workRecordId = seven_digit_id
                 existing_images = metadata.get_existing_images(vernon_items)
                 print(existing_images)
-                #newtail = metadata.derive_tail(image_list, metadata.accessionNo)
-                #newtail = metadata.derive_tail(existing_images, metadata.accessionNo)
-                print("NEWTAIL" + newtail)
+                #Calculating tails is complicated! First, check if the acc no is already processed in the block.
+                #It won't be in Vernon yet, so we just add one to the established highest there.
+                #If the image list (processed images) is empty, this will fall over, so check.
+                if image_list:
+                    newtail = metadata.derive_tail(image_list, metadata.accessionNo)
 
+                print("NEWTAIL" + newtail)
+                #If not, generate based on what's in Vernon.
                 if newtail == '':
                     newtail = metadata.get_tail(existing_images)
 
