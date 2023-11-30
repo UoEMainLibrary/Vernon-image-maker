@@ -215,6 +215,11 @@ def input_vernon():
                     metadata.creatorNameStr = image_bits[3]
                 except Exception:
                     print("defaulting to DIU")
+                
+                try:
+                    metadata.publicationStatus = metadata.get_pub_status(image_bits[4])
+                except Exception:
+                    print("defaulting to Full Public Access")
 
                 # Image name is the first bit
                 metadata.imageRef = image_bits[0]
@@ -344,6 +349,7 @@ def input_vernon():
             field.set("name", "work_record_id")
             value = LUNA_ET.SubElement(field, "value")
             value.text = metadata.workRecordId
+            print(value.text)
 
             entity = LUNA_ET.SubElement(luna_doc, "entity")
             entity.set("name", "id_number")
@@ -351,6 +357,7 @@ def input_vernon():
             field.set("name", "work_catalogue_number")
             value = LUNA_ET.SubElement(field, "value")
             value.text = str(metadata.accessionNo).zfill(4)
+            print(value.text)
 
             entity = LUNA_ET.SubElement(luna_doc, "entity")
             entity.set("name", "title")
@@ -358,6 +365,7 @@ def input_vernon():
             field.set("name", "work_title")
             value = LUNA_ET.SubElement(field, "value")
             value.text = metadata.name
+            print(value.text)
 
             entity = LUNA_ET.SubElement(luna_doc, "entity")
             entity.set("name", "creator")
@@ -365,10 +373,12 @@ def input_vernon():
             field.set("name", "work_creator_details")
             value = LUNA_ET.SubElement(field, "value")
             value.text = metadata.makerStr
+            print(value.text)
             field = LUNA_ET.SubElement(entity, "field")
             field.set("name", "work_creator_name")
             value = LUNA_ET.SubElement(field, "value")
             value.text = metadata.makerStr
+            print(value.text)
 
             entity = LUNA_ET.SubElement(luna_doc, "entity")
             entity.set("name", "dates")
@@ -376,6 +386,7 @@ def input_vernon():
             field.set("name", "work_display_date")
             value = LUNA_ET.SubElement(field, "value")
             value.text = metadata.dateStr
+            print(value.text)
 
             entity = LUNA_ET.SubElement(luna_doc, "entity")
             entity.set("name", "rights")
@@ -383,6 +394,7 @@ def input_vernon():
             field.set("name", "work_rights_statement")
             value = LUNA_ET.SubElement(field, "value")
             value.text = "© The University of Edinburgh"
+            print(value.text)
 
             '''
             entity = LUNA_ET.SubElement(luna_doc, "entity")
@@ -399,6 +411,7 @@ def input_vernon():
             field.set("name", "repro_record_id")
             value = LUNA_ET.SubElement(field, "value")
             value.text = metadata.fileName
+            print(value.text)
 
             entity = LUNA_ET.SubElement(luna_doc, "entity")
             entity.set("name", "repro_title")
@@ -406,6 +419,7 @@ def input_vernon():
             field.set("name", "repro_title")
             value = LUNA_ET.SubElement(field, "value")
             value.text = metadata.briefDesc
+            print(value.text)
 
             entity = LUNA_ET.SubElement(luna_doc, "entity")
             entity.set("name", "repro_id_number")
@@ -413,10 +427,12 @@ def input_vernon():
             field.set("name", "repro_id_number")
             value = LUNA_ET.SubElement(field, "value")
             value.text = metadata.imRefStr
+            print(value.text)
             field = LUNA_ET.SubElement(entity, "field")
             field.set("name", "repro_old_id_number")
             value = LUNA_ET.SubElement(field, "value")
             value.text = metadata.oldId
+            print(value.text)
 
             entity = LUNA_ET.SubElement(luna_doc, "entity")
             entity.set("name", "repro_creator")
@@ -424,6 +440,7 @@ def input_vernon():
             field.set("name", "repro_creator_name")
             value = LUNA_ET.SubElement(field, "value")
             value.text = metadata.creatorNameStr
+            print(value.text)
             field = LUNA_ET.SubElement(entity, "field")
             field.set("name", "repro_creator_role_description")
             value = LUNA_ET.SubElement(field, "value")
@@ -435,6 +452,7 @@ def input_vernon():
             field.set("name", "repro_rights_statement")
             value = LUNA_ET.SubElement(field, "value")
             value.text = metadata.reproRights
+            print(value.text)
 
             entity = LUNA_ET.SubElement(luna_doc, "entity")
             entity.set("name", "repro_publication_status")
@@ -470,7 +488,7 @@ def input_vernon():
         #rendered as &#xxx; html codes.
         with open('files/vernon.xml', 'wb') as metadata_file:
             ET.ElementTree(root).write(metadata_file, xml_declaration=True)
-
+        print(LUNA_ET)
         rough_luna_string = LUNA_ET.tostring(luna_root, 'utf-8')
         luna_reparsed = minidom.parseString(rough_luna_string)
         pretty_luna_string = luna_reparsed.toprettyxml(indent="\t")
