@@ -176,10 +176,16 @@ def input_vernon():
                 if metadata.view_bit == 'q':
                     metadata.advanced_view_bit = imageNameStr[9:10]
                     viewpart = metadata.get_view(metadata.advanced_view_bit)
-                    metadata.viewStr = metadata.viewStr + " " + viewpart.lower()
+                    if viewpart:
+                        metadata.viewStr = metadata.viewStr + " " + viewpart.lower()
                     metadata.advanced_view_bit = imageNameStr[10:11]
                     viewpart = metadata.get_view(metadata.advanced_view_bit)
-                    metadata.viewStr = metadata.viewStr + " " + viewpart.lower()
+                    if viewpart:
+                        metadata.viewStr = metadata.viewStr + " " + viewpart.lower()
+                    metadata.advanced_view_bit = imageNameStr[11:12]
+                    viewpart = metadata.get_view(metadata.advanced_view_bit)
+                    if viewpart:
+                        metadata.viewStr = metadata.viewStr + " " + viewpart.lower()
                 # Parse format of filename and the suffix
                 mainext = imageNameStr.split(".")
                 format = mainext[1]
@@ -212,10 +218,11 @@ def input_vernon():
                     viewpart = metadata.get_view(metadata.advanced_view_bit)
                     metadata.viewStr = metadata.viewStr + " " + viewpart.lower()
                 try:
+
                     metadata.creatorNameStr = image_bits[3]
                 except Exception:
                     print("defaulting to DIU")
-                
+
                 try:
                     metadata.publicationStatus = metadata.get_pub_status(image_bits[4])
                 except Exception:
@@ -270,6 +277,7 @@ def input_vernon():
                 suffix = metadata.get_suffix(format)
                 # The imageRef in this case is the first bit of the string
                 metadata.imageRef = image_bits[0]
+                print("IMAGEREF" + metadata.imageRef)
                 metadata.oldId = image_bits[0]
 
 
@@ -285,13 +293,17 @@ def input_vernon():
                 metadata.workRecordId = metadata.get_seven_digit(vernon_items)
 
             if arnold or other:
+                print("Arnolding")
                 seven_digit_id = metadata.get_seven_digit(vernon_items)
                 metadata.workRecordId = seven_digit_id
                 existing_images = metadata.get_existing_images(vernon_items)
+                print("EXISTING IMAGES")
                 print(existing_images)
                 #Calculating tails is complicated! First, check if the acc no is already processed in the block.
                 #It won't be in Vernon yet, so we just add one to the established highest there.
                 #If the image list (processed images) is empty, this will fall over, so check.
+                print("IMAGE LIST")
+                print(image_list)
                 if image_list:
                     newtail = metadata.derive_tail(image_list, metadata.accessionNo)
 
@@ -547,8 +559,23 @@ def input_vernon_link():
                 # Split these out
             #vernon_items = metadata.get_items_for_link(imageNameStr[0:7])
 
-            vernon_items = metadata.get_link_info(imageNameStr)
-            print(vernon_items)
+            # SR 28/04/2025 - API failing to search with extension to get accession_no
+            image_without_extension = imageNameStr.split('.')[0]
+            print(image_without_extension)
+            vernon_items = metadata.get_link_info(image_without_extension)
+
+            if vernon_items and '_embedded' in vernon_items:
+                records = vernon_items['_embedded'].get('records', [])
+                if records:
+                    first_record = records[0]
+                    print(first_record['user_sym_13'])  # Example of accessing a field
+                else:
+                    print("No records found.")
+            else:
+                print("Invalid data structure returned.")
+
+            #vernon_items = metadata.get_link_info(imageNameStr)
+            #print("Here are Vernon items" + vernon_items)
             metadata.accessionNo = metadata.get_av_ref(vernon_items)
 
             metadata.accessionNo = metadata.accessionNo.zfill(4)

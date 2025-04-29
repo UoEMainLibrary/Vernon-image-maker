@@ -46,7 +46,7 @@ class Metadata:
         :return view in string form:
         """
         print(view_bit)
-        return {
+        view_dict = {
             'l': 'Left',
             't': 'Top',
             'q': 'Quarter',
@@ -65,7 +65,12 @@ class Metadata:
             'x': 'Detail',
             'e': 'Rosette',
             'n': ''
-        }[view_bit]
+        }
+        try:
+            return view_dict[view_bit]
+        except KeyError:
+            print("did not find it")
+            return ''
 
     def get_detail_view(self, detail_view_bit):
         """
@@ -321,9 +326,11 @@ class Metadata:
 
         # Loop round each of the existing AVs for an item
         for av in existing_images:
+            print("TAILING")
             avcount += 1
             avstring = str(av)
-            print(avstring)
+
+            print("AVSTRING" + avstring)
             # Strip out the additional info Vernon puts in
             if ";" in avstring:
                 av_alls = avstring.split(";")
@@ -350,6 +357,7 @@ class Metadata:
                     else:
                         newtail = ''
                 else:
+                    print("I'm going in here and I probably should be setting the new tail to be -0001")
                     newtail = ''
             else:
                 newtail = ''
@@ -357,11 +365,14 @@ class Metadata:
         print(maxtail)
 
         # Generally if the av count is one, the new image's tail will be -0001
+        print("AVCOUNT" + str(avcount))
         if avcount == 1:
             if maxtail == -1:
+                print("in here I think")
                 newtail = '-0001'
             else:
                 # but we should check, in case something has been deleted
+                print("sorry, in here")
                 maxtail = int(maxtail) + 1
                 newtail = "-" + (str(maxtail).zfill(4))
 
@@ -372,7 +383,7 @@ class Metadata:
         # Otherwise the image's tail will be one more than the max, regardless of whether
         # the FORMAT is lower. It's better for avoiding clashes.
         if avcount > 1:
-            print("AVCOUNT is mair than wan")
+            print("AVCOUNT is mair than wan" + str(maxtail))
             if int(maxtail) > -1:
                 print(maxtail)
                 maxtail = int(maxtail) + 1
@@ -495,7 +506,9 @@ class Metadata:
         myopener = MyOpener()
         response = myopener.open(url)
         try:
+            print("I'm in the try")
             data = response.read().decode("utf-8")
+            print(data)
             return json.loads(data)
         except Exception:
             print("nothing to run")
