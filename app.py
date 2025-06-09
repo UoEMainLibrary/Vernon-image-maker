@@ -574,8 +574,6 @@ def input_vernon_link():
             else:
                 print("Invalid data structure returned.")
 
-            #vernon_items = metadata.get_link_info(imageNameStr)
-            #print("Here are Vernon items" + vernon_items)
             metadata.accessionNo = metadata.get_av_ref(vernon_items)
 
             metadata.accessionNo = metadata.accessionNo.zfill(4)
