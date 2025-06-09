@@ -1,1 +1,0 @@
-cp ucjh1003qfr.tif 0032903c-0007.tif
