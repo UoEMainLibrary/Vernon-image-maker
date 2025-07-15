@@ -1,3 +1,5 @@
+import requests
+
 class Metadata:
 
     def __init__(self):
@@ -119,13 +121,14 @@ class Metadata:
             version = 'My new User-Agent'
 
         url = vernon_api + "accession_no:" + accession_no + "&fields=id,name,prod_pri_date,prod_pri_person_name,av,user_sym_37,user_sym_20"
-        print(url)
+        print("get_items" + url)
         myopener = MyOpener()
         response = myopener.open(url)
         try:
             data = response.read().decode("utf-8")
             return json.loads(data)
         except Exception:
+            print("get_items I have dropped into exception")
             try:
                 #This is horrible! It seems that some 4 digit IDs don't pick up from the API with their leading zeros.
                 #Second attempt taking off the leading zero works in this instance.
@@ -486,6 +489,7 @@ class Metadata:
             'v': '© Zeo Cordey/The University of Edinburgh'
         }[creator_bit]
 
+    '''
     def get_link_info(self, imageNameStr):
         """
         Interrogate Vernon API based on an image id
@@ -513,6 +517,33 @@ class Metadata:
             return json.loads(data)
         except Exception:
             print("get_link_info" + url + "nothing to run")
+    '''
+
+    def get_link_info(self, imageNameStr):
+        """
+        Interrogate Vernon API based on an image id
+        :param imageNameStr:
+        :return data:
+        """
+        print(imageNameStr)
+
+        vernon_api = 'http://vernonapi.is.ed.ac.uk/vcms-api/oecgi4.exe/datafiles/AV/?query='
+
+        url = vernon_api + "search:" + imageNameStr + "&fields=id,im_ref,user_sym_13,user_sym_23,ref,user_sym_18"
+        print(url)
+
+        headers = {"User-Agent": "My new User-Agent"}
+
+        try:
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()
+            print(f"get_link_info {url} I'm in the try")
+            print(response.text)
+            return response.json()
+        except Exception as e:
+            print(f"get_link_info {url} nothing to run")
+            print(f"Error: {e}")
+            return None
 
     def get_luna_items(self, imageNameStr):
         """
