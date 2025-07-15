@@ -435,7 +435,7 @@ class Metadata:
                 maxtail = int(maxtail) + 1
                 newtail = "-"+(str(maxtail).zfill(4))
         return newtail
-
+    '''
     def get_av_items(self, searchAV):
         """
         Get data back for AV ID
@@ -465,6 +465,25 @@ class Metadata:
             print("AND HEEEERE")
         except Exception:
             print("get_av_items" + url + "nothing to run")
+        '''
+
+    def get_av_items(self, searchAV):
+        vernon_api = 'http://vernonapi.is.ed.ac.uk/vcms-api/oecgi4.exe/datafiles/AV/?query='
+        url = vernon_api + "search:" + searchAV + "&fields=id,im_ref"
+        print("get_av_items URL:", url)
+
+        headers = {"User-Agent": "My new User-Agent"}
+
+        try:
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()
+            print("Response received successfully")
+            return response.json()
+        except Exception as e:
+            print(f"get_av_items {url} nothing to run")
+            print(f"Error: {e}")
+            return None
+
 
     def get_items_for_link(self, avNumber):
         """
