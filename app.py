@@ -571,7 +571,7 @@ def input_vernon_link():
             vernon_av_items = metadata.get_av_items(metadata.searchAV)
             logger.info("AFTER GET_AV_ITEMS" + str(vernon_av_items))
             metadata.av_systemid = metadata.get_av_sysid(vernon_av_items)
-            logger.info("AFTER GET_AV_ITEMS" + av_systemid)
+            logger.info("AFTER GET_AV_SYS_ID" + str(metadata.av_systemid))
             ET.SubElement(doc, "id").text = metadata.systemid
             ET.SubElement(doc, "av").text = metadata.av_systemid
 
