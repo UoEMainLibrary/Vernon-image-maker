@@ -535,12 +535,12 @@ class Metadata:
         :param vernon_items:
         :return id:
         """
-        logger.info("get_av_sysid" + vernon_av_items)
+        logger.info("get_av_sysid" + str(vernon_av_items))
         try:
             id = vernon_av_items["_embedded"]["records"][0]['id']
         except Exception:
             id = ''
-        logger.info("get_av_sysid" + id)
+        logger.info("get_av_sysid" + str(id))
         return id
 
     def get_work_record_id(self, vernon_items):
