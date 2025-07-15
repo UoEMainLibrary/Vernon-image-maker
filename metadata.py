@@ -455,10 +455,14 @@ class Metadata:
         url = vernon_api + "search:" + searchAV +"&fields=id,im_ref"
         print("get_av_items" + url)
         myopener = MyOpener()
+        print("HERE")
         response = myopener.open(url)
+        print("AND HERE")
         try:
             data = response.read().decode("utf-8")
+            print("AND HEERE")
             return json.loads(data)
+            print("AND HEEEERE")
         except Exception:
             print("get_av_items" + url + "nothing to run")
 
