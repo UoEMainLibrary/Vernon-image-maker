@@ -475,7 +475,7 @@ class Metadata:
     def get_av_items(self, searchAV):
         vernon_api = 'http://vernonapi.is.ed.ac.uk/vcms-api/oecgi4.exe/datafiles/AV/?query='
         url = vernon_api + "search:" + searchAV + "&fields=id,im_ref"
-        logger.info("get_av_items URL:", url)
+        logger.info("get_av_items URL:" + url)
 
         headers = {"User-Agent": "My new User-Agent"}
 
