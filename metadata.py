@@ -104,7 +104,7 @@ class Metadata:
             "TIFF": "c"
         }[format]
 
-    '''
+    
     def get_items(self, accession_no):
         """
         Get Object info from API and return as json
@@ -143,8 +143,8 @@ class Metadata:
                 return json.loads(data)
             except Exception:
                 print("get items" + url + "nothing to run")
-    '''
 
+    '''
     def get_items(self, accession_no):
         """
         Get Object info from API and return as JSON.
@@ -185,7 +185,7 @@ class Metadata:
         except Exception as e:
             print("Second attempt failed:", e)
             return None
-
+        '''
     def get_creator_notes(self, creator_bit):
         """
         Get the creator notes based on the creator character
