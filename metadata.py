@@ -1,7 +1,7 @@
 import requests
 import logging
 logger = logging.getLogger(__name__)
-logging.basicConfig(filename='image.log', encoding='utf-8', level=logging.DEBUG)
+logging.basicConfig(filename='metadata.log', encoding='utf-8', level=logging.DEBUG)
 
 
 
