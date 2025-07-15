@@ -131,14 +131,14 @@ class Metadata:
                 #Second attempt taking off the leading zero works in this instance.
                 accession_no = accession_no.lstrip("0")
                 url = vernon_api + "accession_no:" + accession_no + "&fields=id,name,prod_pri_date,prod_pri_person_name,av,user_sym_37,user_sym_20"
-                print(url)
+                print("get items" + url)
                 myopener = MyOpener()
                 response = myopener.open(url)
-                print(accession_no)
+                print("get items" + accession_no)
                 data = response.read().decode("utf-8")
                 return json.loads(data)
             except Exception:
-                print("nothing to run")
+                print("get items" + url + "nothing to run")
 
     def get_creator_notes(self, creator_bit):
         """
@@ -196,10 +196,10 @@ class Metadata:
         print("getting av ref")
         try:
             ref = vernon_items["_embedded"]["records"][0]['ref_group'][0]['ref']
-            print(ref)
+            print("get_av_ref" + ref)
         except Exception:
             ref = ''
-            print("failed to get accession_no")
+            print("get_av_ref" + "failed to get accession_no")
 
         return ref
 
@@ -506,12 +506,12 @@ class Metadata:
         myopener = MyOpener()
         response = myopener.open(url)
         try:
-            print("I'm in the try")
+            print("get_link_info" + url + "I'm in the try")
             data = response.read().decode("utf-8")
             print(data)
             return json.loads(data)
         except Exception:
-            print("nothing to run")
+            print("get_link_info" + url + "nothing to run")
 
     def get_luna_items(self, imageNameStr):
         """
