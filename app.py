@@ -577,11 +577,11 @@ def input_vernon_link():
             metadata.accessionNo = metadata.get_av_ref(vernon_items)
 
             metadata.accessionNo = metadata.accessionNo.zfill(4)
-            print(metadata.accessionNo)
+            print("AFTER ACCESSIONNO.ZFILL" + metadata.accessionNo)
             object_items = metadata.get_items(metadata.accessionNo)
-            print(object_items)
+            print("AFTER GET_ITEMS "+ object_items)
             metadata.systemid = metadata.get_sysid(object_items)
-            print(metadata.systemid)
+            print("AFTER GET_SYSID" + metadata.systemid)
 
             searchAVBits = imageNameStr.split(".")
             metadata.searchAV = searchAVBits[0]
@@ -602,6 +602,7 @@ def input_vernon_link():
 
         from xml.dom import minidom
         import xml.etree.cElementTree as ET
+        print("I AM BUILDING A TREE")
         root = ET.Element("recordSet")
         for imageNameStr in imageBlock:
             print("AM I HERE?")
@@ -627,6 +628,7 @@ def input_vernon_link():
         iiif_string = ET.tostring(root, 'utf-8')
         reparsed_iiif = minidom.parseString(iiif_string)
         pretty_iiif_string = reparsed_iiif.toprettyxml(indent="\t")
+        print("I HAVE PRETTIFIED THE IIIF STRING HAVEN'T I?")
         metadata_file = open("files/iiif.xml", "w")
         metadata_file.write(pretty_iiif_string)
         metadata_file.close()
