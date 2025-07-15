@@ -579,7 +579,7 @@ def input_vernon_link():
             metadata.accessionNo = metadata.accessionNo.zfill(4)
             print("AFTER ACCESSIONNO.ZFILL" + metadata.accessionNo)
             object_items = metadata.get_items(metadata.accessionNo)
-            print("AFTER GET_ITEMS "+ object_items)
+            print("AFTER GET_ITEMS " + object_items)
             metadata.systemid = metadata.get_sysid(object_items)
             print("AFTER GET_SYSID" + metadata.systemid)
 

@@ -172,19 +172,19 @@ class Metadata:
         except Exception as e:
             print("First attempt failed:", e)
 
-        # 2nd attempt with leading zeros stripped
-        accession_no_stripped = accession_no.lstrip("0")
-        url_stripped = build_url(accession_no_stripped)
-        print("Retrying with stripped accession number:", url_stripped)
+            # 2nd attempt with leading zeros stripped
+            accession_no_stripped = accession_no.lstrip("0")
+            url_stripped = build_url(accession_no_stripped)
+            print("Retrying with stripped accession number:", url_stripped)
 
-        try:
-            response = requests.get(url_stripped, headers=headers)
-            response.raise_for_status()
-            print("Second attempt succeeded.")
-            return response.json()
-        except Exception as e:
-            print("Second attempt failed:", e)
-            return None
+            try:
+                response = requests.get(url_stripped, headers=headers)
+                response.raise_for_status()
+                print("Second attempt succeeded.")
+                return response.json()
+            except Exception as e:
+                print("Second attempt failed:", e)
+                return None
 
     def get_creator_notes(self, creator_bit):
         """
