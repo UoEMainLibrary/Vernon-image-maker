@@ -586,6 +586,7 @@ def input_vernon_link():
             searchAVBits = imageNameStr.split(".")
             metadata.searchAV = searchAVBits[0]
             vernon_av_items = metadata.get_av_items(metadata.searchAV)
+            print("AFTER GET_AV_ITEMS" + vernon_av_items)
             metadata.av_systemid = metadata.get_av_sysid(vernon_av_items)
 
             ET.SubElement(doc, "id").text = metadata.systemid

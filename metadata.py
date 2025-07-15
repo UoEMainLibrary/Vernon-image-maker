@@ -104,7 +104,7 @@ class Metadata:
             "TIFF": "c"
         }[format]
 
-    
+
     def get_items(self, accession_no):
         """
         Get Object info from API and return as json
