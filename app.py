@@ -598,6 +598,8 @@ def input_vernon_link():
         metadata_file.write(pretty_string)
         metadata_file.close()
 
+        print("AM I HERE" + imageBlock)
+
         from xml.dom import minidom
         import xml.etree.cElementTree as ET
         root = ET.Element("recordSet")
