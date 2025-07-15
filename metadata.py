@@ -104,6 +104,7 @@ class Metadata:
             "TIFF": "c"
         }[format]
 
+    '''
     def get_items(self, accession_no):
         """
         Get Object info from API and return as json
@@ -142,6 +143,48 @@ class Metadata:
                 return json.loads(data)
             except Exception:
                 print("get items" + url + "nothing to run")
+    '''
+
+    def get_items(self, accession_no):
+        """
+        Get Object info from API and return as JSON.
+        :param accession_no: the accession number string
+        :return: the returned JSON or None
+        """
+        vernon_api = 'http://vernonapi.is.ed.ac.uk/vcms-api/oecgi4.exe/datafiles/OBJECT/?query='
+
+        fields = "id,name,prod_pri_date,prod_pri_person_name,av,user_sym_37,user_sym_20"
+
+        headers = {"User-Agent": "My new User-Agent"}
+
+        def build_url(acc_no):
+            return f"{vernon_api}accession_no:{acc_no}&fields={fields}"
+
+        # 1st attempt with original accession_no
+        url = build_url(accession_no)
+        print("get_items URL:", url)
+
+        try:
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()
+            print("First attempt succeeded.")
+            return response.json()
+        except Exception as e:
+            print("First attempt failed:", e)
+
+        # 2nd attempt with leading zeros stripped
+        accession_no_stripped = accession_no.lstrip("0")
+        url_stripped = build_url(accession_no_stripped)
+        print("Retrying with stripped accession number:", url_stripped)
+
+        try:
+            response = requests.get(url_stripped, headers=headers)
+            response.raise_for_status()
+            print("Second attempt succeeded.")
+            return response.json()
+        except Exception as e:
+            print("Second attempt failed:", e)
+            return None
 
     def get_creator_notes(self, creator_bit):
         """
