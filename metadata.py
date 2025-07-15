@@ -1,4 +1,9 @@
 import requests
+import logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(filename='image.log', encoding='utf-8', level=logging.DEBUG)
+
+
 
 class Metadata:
 
@@ -47,7 +52,7 @@ class Metadata:
         :param view_bit:
         :return view in string form:
         """
-        print(view_bit)
+        logger.info(view_bit)
         view_dict = {
             'l': 'Left',
             't': 'Top',
@@ -71,7 +76,7 @@ class Metadata:
         try:
             return view_dict[view_bit]
         except KeyError:
-            print("did not find it")
+            logger.info("did not find it")
             return ''
 
     def get_detail_view(self, detail_view_bit):
@@ -122,27 +127,27 @@ class Metadata:
             version = 'My new User-Agent'
 
         url = vernon_api + "accession_no:" + accession_no + "&fields=id,name,prod_pri_date,prod_pri_person_name,av,user_sym_37,user_sym_20"
-        print("get_items" + url)
+        logger.info("get_items" + url)
         myopener = MyOpener()
         response = myopener.open(url)
         try:
             data = response.read().decode("utf-8")
             return json.loads(data)
         except Exception:
-            print("get_items I have dropped into exception")
+            logger.info("get_items I have dropped into exception")
             try:
                 #This is horrible! It seems that some 4 digit IDs don't pick up from the API with their leading zeros.
                 #Second attempt taking off the leading zero works in this instance.
                 accession_no = accession_no.lstrip("0")
                 url = vernon_api + "accession_no:" + accession_no + "&fields=id,name,prod_pri_date,prod_pri_person_name,av,user_sym_37,user_sym_20"
-                print("get items" + url)
+                logger.info("get items" + url)
                 myopener = MyOpener()
                 response = myopener.open(url)
-                print("get items" + accession_no)
+                logger.info("get items" + accession_no)
                 data = response.read().decode("utf-8")
                 return json.loads(data)
             except Exception:
-                print("get items" + url + "nothing to run")
+                logger.info("get items" + url + "nothing to run")
 
     '''
     def get_items(self, accession_no):
@@ -242,10 +247,10 @@ class Metadata:
         print("getting av ref")
         try:
             ref = vernon_items["_embedded"]["records"][0]['ref_group'][0]['ref']
-            print("get_av_ref" + ref)
+            logger.info("get_av_ref" + ref)
         except Exception:
             ref = ''
-            print("get_av_ref" + "failed to get accession_no")
+            logger.info("get_av_ref" + "failed to get accession_no")
 
         return ref
 
@@ -304,7 +309,7 @@ class Metadata:
         :param publication_status:
         :return:
         """
-        print(publication_status)
+        logger.info(publication_status)
         return {
             'f': 'Full Public Access',
             'n': 'No Access',
@@ -317,7 +322,7 @@ class Metadata:
         :param creator_bit:
         :return:
         """
-        print(creator_bit)
+        logger.info(creator_bit)
         return {
             'a': 'Rachel Travers',
             'b': 'Raymond Parks',
@@ -345,7 +350,7 @@ class Metadata:
         tail_derived = False
         newtail = ''
         for item in image_list:
-            print("ITEM" + str(item))
+            logger.info("ITEM" + str(item))
             list_acc = item["accession"]
             list_tail = item["tail"]
             if list_tail == '':
@@ -357,7 +362,7 @@ class Metadata:
         if tail_derived == True:
             batch_tail = int(batch_tail) + 1
             newtail = "-" + (str(batch_tail).zfill(4))
-            print(newtail)
+            logger.info(newtail)
         return newtail
 
     def get_tail(self, existing_images):
@@ -372,53 +377,53 @@ class Metadata:
 
         # Loop round each of the existing AVs for an item
         for av in existing_images:
-            print("TAILING")
+            logger.info("TAILING")
             avcount += 1
             avstring = str(av)
 
-            print("AVSTRING" + avstring)
+            logger.info("AVSTRING" + avstring)
             # Strip out the additional info Vernon puts in
             if ";" in avstring:
                 av_alls = avstring.split(";")
                 av_all = av_alls[0]
-                print(av_all)
+                logger.info(av_all)
                 # Check for -0 as sign of a tail. This isn't ideal- it will cause problems if an
                 # item has more than 1000 images, or the caption has a rogue "-0" in it.
                 # Gets us round captions that do have "-" unrelated to the tail, which is not uncommon.
                 if "-0" in av_all:
                     av_bits = av_all.split("-")
                     av_bit = av_bits[1]
-                    print(av_bit)
+                    logger.info(av_bit)
                     # Then strip off the format.
                     if "." in av_bit:
-                        print("I dfound a dot and am now here")
+                        logger.info("I dfound a dot and am now here")
                         tailpart = av_bits[1].split(".")
                         tail = tailpart[0]
-                        print("T"+tail)
+                        logger.info("T"+tail)
                         # Check against the existing running maxtail and move the maxtail accordingly.
                         if int(tail) > int(maxtail):
-                            print(str(tail) + "vs: " + str(maxtail))
+                            logger.info(str(tail) + "vs: " + str(maxtail))
                             maxtail = tail
-                            print("M"+str(maxtail))
+                            logger.info("M"+str(maxtail))
                     else:
                         newtail = ''
                 else:
-                    print("I'm going in here and I probably should be setting the new tail to be -0001")
+                    logger.info("I'm going in here and I probably should be setting the new tail to be -0001")
                     newtail = ''
             else:
                 newtail = ''
 
-        print(maxtail)
+        logger.info(maxtail)
 
         # Generally if the av count is one, the new image's tail will be -0001
-        print("AVCOUNT" + str(avcount))
+        logger.info("AVCOUNT" + str(avcount))
         if avcount == 1:
             if maxtail == -1:
-                print("in here I think")
+                logger.info("in here I think")
                 newtail = '-0001'
             else:
                 # but we should check, in case something has been deleted
-                print("sorry, in here")
+                logger.info("sorry, in here")
                 maxtail = int(maxtail) + 1
                 newtail = "-" + (str(maxtail).zfill(4))
 
@@ -429,7 +434,7 @@ class Metadata:
         # Otherwise the image's tail will be one more than the max, regardless of whether
         # the FORMAT is lower. It's better for avoiding clashes.
         if avcount > 1:
-            print("AVCOUNT is mair than wan" + str(maxtail))
+            logger.info("AVCOUNT is mair than wan" + str(maxtail))
             if int(maxtail) > -1:
                 print(maxtail)
                 maxtail = int(maxtail) + 1
@@ -470,31 +475,31 @@ class Metadata:
     def get_av_items(self, searchAV):
         vernon_api = 'http://vernonapi.is.ed.ac.uk/vcms-api/oecgi4.exe/datafiles/AV/?query='
         url = vernon_api + "search:" + searchAV + "&fields=id,im_ref"
-        print("get_av_items URL:", url)
+        logger.info("get_av_items URL:", url)
 
         headers = {"User-Agent": "My new User-Agent"}
 
         try:
             response = requests.get(url, headers=headers)
-            print(f"HTTP Status Code: {response.status_code}")
-            print(f"Response Headers: {response.headers}")
-            print("Raw response content:")
-            print(response.text)  # Show raw text to debug JSON parse errors
+            logger.info(f"HTTP Status Code: {response.status_code}")
+            logger.info(f"Response Headers: {response.headers}")
+            logger.info("Raw response content:")
+            logger.info(response.text)  # Show raw text to debug JSON parse errors
 
             response.raise_for_status()  # Raise if status code is 4xx or 5xx
 
             data = response.json()  # Try to parse JSON now that status is OK
-            print("Parsed JSON successfully")
+            logger.info("Parsed JSON successfully")
             return data
 
         except requests.exceptions.HTTPError as http_err:
-            print(f"HTTP error occurred: {http_err}")
+            logger.info(f"HTTP error occurred: {http_err}")
         except requests.exceptions.RequestException as req_err:
-            print(f"Request exception occurred: {req_err}")
+            logger.info(f"Request exception occurred: {req_err}")
         except ValueError as val_err:
-            print(f"JSON decoding failed: {val_err}")
+            logger.info(f"JSON decoding failed: {val_err}")
         except Exception as e:
-            print(f"An unexpected error occurred: {e}")
+            logger.info(f"An unexpected error occurred: {e}")
 
         return None
 
@@ -522,7 +527,7 @@ class Metadata:
             data = response.read().decode("utf-8")
             return json.loads(data)
         except Exception:
-            print("nothing to run")
+            logger.info("nothing to run")
 
     def get_av_sysid(self, vernon_av_items):
         """
@@ -605,24 +610,24 @@ class Metadata:
         :param imageNameStr:
         :return data:
         """
-        print(imageNameStr)
+        logger.info(imageNameStr)
 
         vernon_api = 'http://vernonapi.is.ed.ac.uk/vcms-api/oecgi4.exe/datafiles/AV/?query='
 
         url = vernon_api + "search:" + imageNameStr + "&fields=id,im_ref,user_sym_13,user_sym_23,ref,user_sym_18"
-        print(url)
+        logger.info(url)
 
         headers = {"User-Agent": "My new User-Agent"}
 
         try:
             response = requests.get(url, headers=headers)
             response.raise_for_status()
-            print(f"get_link_info {url} I'm in the try")
-            print(response.text)
+            logger.info(f"get_link_info {url} I'm in the try")
+            logger.info(response.text)
             return response.json()
         except Exception as e:
-            print(f"get_link_info {url} nothing to run")
-            print(f"Error: {e}")
+            logger.info(f"get_link_info {url} nothing to run")
+            logger.info(f"Error: {e}")
             return None
 
     def get_luna_items(self, imageNameStr):
@@ -647,18 +652,18 @@ class Metadata:
             ssl._create_default_https_context = _create_unverified_https_context
 
         url = luna_api + imageNameStr
-        print("get_luna_items" + url)
+        logger.info("get_luna_items" + url)
         #myopener = MyOpener()
         try:
             response = urllib.request.urlopen(url)
         except urllib.error.URLError as e:
-            print(e.reason)
+            logger.info(e.reason)
 
         try:
             data = response.read().decode("utf-8")
             return json.loads(data)
         except Exception:
-            print("nothing to run")
+            logger.info("nothing to run")
 
     def get_luna_url(self, luna_items):
         """
@@ -694,7 +699,7 @@ class Metadata:
             data = response.read().decode("utf-8")
             return json.loads(data)
         except Exception:
-            print("nothing to run")
+            logger.info("nothing to run")
 
     def get_all_art(self):
         """
@@ -718,4 +723,4 @@ class Metadata:
             data = response.read().decode("utf-8")
             return json.loads(data)
         except Exception:
-            print("nothing to run")
+            logger.info("nothing to run")

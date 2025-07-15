@@ -1,10 +1,15 @@
 import json
 import sys
 import os
+import logging
 from flask import Flask, Response, render_template, request, redirect, url_for, send_from_directory, send_file
 from metadata import Metadata
 
 app = Flask(__name__)
+import logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(filename='image.log', encoding='utf-8', level=logging.DEBUG)
+
 
 @app.after_request
 def add_header(r):
@@ -142,9 +147,9 @@ def input_vernon():
 
         # Read through images
         for imageNameStr in imageBlock:
-            print(repr(imageNameStr))
+            logger.info(repr(imageNameStr))
             imageNameStr.strip()
-            print(repr(imageNameStr))
+            logger.info(repr(imageNameStr))
 
             newtail = ''
 
@@ -153,7 +158,7 @@ def input_vernon():
             luna_doc = LUNA_ET.SubElement(luna_root, "record")
             metadata = Metadata()
             metadata.collection_title = metadata.get_collection_title(collection)
-            print(metadata.collection_title)
+            logger.info(metadata.collection_title)
             collection_folder = collection.lower()
             # Specific processing for Arnold-style images
             if arnold:
@@ -200,15 +205,15 @@ def input_vernon():
                 image_bits = imageNameStr.split(":")
                 # Accession No is the second bit
                 metadata.accessionNo =image_bits[1]
-                print("AC" + metadata.accessionNo)
+                logger.info("AC" + metadata.accessionNo)
                 # View is the third bit
                 metadata.view_bit = image_bits[2]
-                print('VB'+metadata.view_bit)
+                logger.info('VB'+metadata.view_bit)
                 metadata.viewStr = metadata.get_view(metadata.view_bit[0])
                 # X and Q rely on subsequent characters to get full information
                 if metadata.view_bit[0] == 'x':
                     metadata.advanced_view_bit = metadata.view_bit[0:2]
-                    print("ADV"+metadata.advanced_view_bit)
+                    logger.info("ADV"+metadata.advanced_view_bit)
                     metadata.viewStr = metadata.get_detail_view(metadata.advanced_view_bit)
                 if metadata.view_bit[0] == 'q':
                     metadata.advanced_view_bit = metadata.view_bit[1]
@@ -221,19 +226,19 @@ def input_vernon():
 
                     metadata.creatorNameStr = image_bits[3]
                 except Exception:
-                    print("defaulting to DIU")
+                    logger.info("defaulting to DIU")
 
                 try:
                     metadata.publicationStatus = metadata.get_pub_status(image_bits[4])
                 except Exception:
-                    print("defaulting to Full Public Access")
+                    logger.info("defaulting to Full Public Access")
 
                 # Image name is the first bit
                 metadata.imageRef = image_bits[0]
-                print(metadata.imageRef)
+                logger.info(metadata.imageRef)
                 # Suffix will always be the 8th char
                 suffix = metadata.imageRef[7:8]
-                print("S" + suffix)
+                logger.info("S" + suffix)
                 # Format is part of the image name
                 formats = metadata.imageRef.split(".")
                 format = formats[1]
@@ -244,15 +249,15 @@ def input_vernon():
                 image_bits = imageNameStr.split(":")
                 # Accession No is the second bit
                 metadata.accessionNo = image_bits[1]
-                print("AC" + metadata.accessionNo)
+                logger.info("AC" + metadata.accessionNo)
                 # View is the third bit
                 metadata.view_bit = image_bits[2]
-                print('VB' + metadata.view_bit)
+                logger.info('VB' + metadata.view_bit)
                 metadata.viewStr = metadata.get_view(metadata.view_bit[0])
                 # X and Q rely on subsequent characters to get full information
                 if metadata.view_bit[0] == 'x':
                     metadata.advanced_view_bit = metadata.view_bit[0:2]
-                    print("ADV" + metadata.advanced_view_bit)
+                    logger.info("ADV" + metadata.advanced_view_bit)
                     metadata.viewStr = metadata.get_detail_view(metadata.advanced_view_bit)
                 if metadata.view_bit[0] == 'q':
                     metadata.advanced_view_bit = metadata.view_bit[1]
@@ -264,12 +269,12 @@ def input_vernon():
                 try:
                     metadata.creatorNameStr = image_bits[3]
                 except Exception:
-                    print("defaulting to DIU")
+                    logger.info("defaulting to DIU")
 
                 try:
                     metadata.publicationStatus = metadata.get_pub_status(image_bits[4])
                 except Exception:
-                    print("defaulting to Full Public Access")
+                    logger.info("defaulting to Full Public Access")
 
                 # Parse format of filename and the suffix
                 mainext = image_bits[0].split(".")
@@ -277,13 +282,13 @@ def input_vernon():
                 suffix = metadata.get_suffix(format)
                 # The imageRef in this case is the first bit of the string
                 metadata.imageRef = image_bits[0]
-                print("IMAGEREF" + metadata.imageRef)
+                logger.info("IMAGEREF" + metadata.imageRef)
                 metadata.oldId = image_bits[0]
 
 
             # Call Vernon API to get JSON payload based on accessionNo
             vernon_items = metadata.get_items(metadata.accessionNo)
-            print(vernon_items)
+            logger.info(vernon_items)
             metadata.name = metadata.get_name(vernon_items)
             metadata.systemid = metadata.get_sysid(vernon_items)
             metadata.dateStr = metadata.get_date(vernon_items)
@@ -293,21 +298,21 @@ def input_vernon():
                 metadata.workRecordId = metadata.get_seven_digit(vernon_items)
 
             if arnold or other:
-                print("Arnolding")
+                logger.info("Arnolding")
                 seven_digit_id = metadata.get_seven_digit(vernon_items)
                 metadata.workRecordId = seven_digit_id
                 existing_images = metadata.get_existing_images(vernon_items)
-                print("EXISTING IMAGES")
-                print(existing_images)
+                logger.info("EXISTING IMAGES")
+                logger.info(existing_images)
                 #Calculating tails is complicated! First, check if the acc no is already processed in the block.
                 #It won't be in Vernon yet, so we just add one to the established highest there.
                 #If the image list (processed images) is empty, this will fall over, so check.
-                print("IMAGE LIST")
-                print(image_list)
+                logger.info("IMAGE LIST")
+                logger.info(image_list)
                 if image_list:
                     newtail = metadata.derive_tail(image_list, metadata.accessionNo)
 
-                print("NEWTAIL" + newtail)
+                logger.info("NEWTAIL" + newtail)
                 #If not, generate based on what's in Vernon.
                 if newtail == '':
                     newtail = metadata.get_tail(existing_images)
@@ -315,17 +320,17 @@ def input_vernon():
             level = 'Crops'
             if suffix == "d":
                 level = 'Derivatives'
-            print(metadata.imageRef)
+            logger.info(metadata.imageRef)
             if "-" in metadata.imageRef:
                 full_name = metadata.imageRef[0:len(metadata.imageRef) - 4]
             else:
                 full_name = seven_digit_id + str(suffix) + newtail
-            print(full_name)
+            logger.info(full_name)
 
             metadata.imRefStr = seven_digit_id[0:4] + "000-" + seven_digit_id[0:4] + "999\\" + full_name  + ".jpg"
-            print(metadata.imRefStr)
+            logger.info(metadata.imRefStr)
             metadata.masterStr = "\\\sg.datastore.ed.ac.uk\sg\lib\groups\lac-store\\" + collection_folder + "\\" + level + "\\" + seven_digit_id[0:4] + "000-" + seven_digit_id[0:4] + "999\\" + full_name + "." + str(format)
-            print(metadata.masterStr)
+            logger.info(metadata.masterStr)
 
             metadata.caption = full_name + ".jpg" + " (" + metadata.imageRef + ")"
             metadata.briefDesc = metadata.name + " (" + metadata.makerStr + ") : " + metadata.viewStr + " view"
@@ -361,7 +366,7 @@ def input_vernon():
             field.set("name", "work_record_id")
             value = LUNA_ET.SubElement(field, "value")
             value.text = metadata.workRecordId
-            print(value.text)
+            logger.info(value.text)
 
             entity = LUNA_ET.SubElement(luna_doc, "entity")
             entity.set("name", "id_number")
@@ -369,7 +374,7 @@ def input_vernon():
             field.set("name", "work_catalogue_number")
             value = LUNA_ET.SubElement(field, "value")
             value.text = str(metadata.accessionNo).zfill(4)
-            print(value.text)
+            logger.info(value.text)
 
             entity = LUNA_ET.SubElement(luna_doc, "entity")
             entity.set("name", "title")
@@ -377,7 +382,7 @@ def input_vernon():
             field.set("name", "work_title")
             value = LUNA_ET.SubElement(field, "value")
             value.text = metadata.name
-            print(value.text)
+            logger.info(value.text)
 
             entity = LUNA_ET.SubElement(luna_doc, "entity")
             entity.set("name", "creator")
@@ -385,12 +390,12 @@ def input_vernon():
             field.set("name", "work_creator_details")
             value = LUNA_ET.SubElement(field, "value")
             value.text = metadata.makerStr
-            print(value.text)
+            logger.info(value.text)
             field = LUNA_ET.SubElement(entity, "field")
             field.set("name", "work_creator_name")
             value = LUNA_ET.SubElement(field, "value")
             value.text = metadata.makerStr
-            print(value.text)
+            logger.info(value.text)
 
             entity = LUNA_ET.SubElement(luna_doc, "entity")
             entity.set("name", "dates")
@@ -398,7 +403,7 @@ def input_vernon():
             field.set("name", "work_display_date")
             value = LUNA_ET.SubElement(field, "value")
             value.text = metadata.dateStr
-            print(value.text)
+            logger.info(value.text)
 
             entity = LUNA_ET.SubElement(luna_doc, "entity")
             entity.set("name", "rights")
@@ -406,7 +411,7 @@ def input_vernon():
             field.set("name", "work_rights_statement")
             value = LUNA_ET.SubElement(field, "value")
             value.text = "© The University of Edinburgh"
-            print(value.text)
+            logger.info(value.text)
 
             '''
             entity = LUNA_ET.SubElement(luna_doc, "entity")
@@ -423,7 +428,7 @@ def input_vernon():
             field.set("name", "repro_record_id")
             value = LUNA_ET.SubElement(field, "value")
             value.text = metadata.fileName
-            print(value.text)
+            logger.info(value.text)
 
             entity = LUNA_ET.SubElement(luna_doc, "entity")
             entity.set("name", "repro_title")
@@ -431,7 +436,7 @@ def input_vernon():
             field.set("name", "repro_title")
             value = LUNA_ET.SubElement(field, "value")
             value.text = metadata.briefDesc
-            print(value.text)
+            logger.info(value.text)
 
             entity = LUNA_ET.SubElement(luna_doc, "entity")
             entity.set("name", "repro_id_number")
@@ -439,12 +444,12 @@ def input_vernon():
             field.set("name", "repro_id_number")
             value = LUNA_ET.SubElement(field, "value")
             value.text = metadata.imRefStr
-            print(value.text)
+            logger.info(value.text)
             field = LUNA_ET.SubElement(entity, "field")
             field.set("name", "repro_old_id_number")
             value = LUNA_ET.SubElement(field, "value")
             value.text = metadata.oldId
-            print(value.text)
+            logger.info(value.text)
 
             entity = LUNA_ET.SubElement(luna_doc, "entity")
             entity.set("name", "repro_creator")
@@ -452,7 +457,7 @@ def input_vernon():
             field.set("name", "repro_creator_name")
             value = LUNA_ET.SubElement(field, "value")
             value.text = metadata.creatorNameStr
-            print(value.text)
+            logger.info(value.text)
             field = LUNA_ET.SubElement(entity, "field")
             field.set("name", "repro_creator_role_description")
             value = LUNA_ET.SubElement(field, "value")
@@ -464,7 +469,7 @@ def input_vernon():
             field.set("name", "repro_rights_statement")
             value = LUNA_ET.SubElement(field, "value")
             value.text = metadata.reproRights
-            print(value.text)
+            logger.info(value.text)
 
             entity = LUNA_ET.SubElement(luna_doc, "entity")
             entity.set("name", "repro_publication_status")
@@ -500,7 +505,7 @@ def input_vernon():
         #rendered as &#xxx; html codes.
         with open('files/vernon.xml', 'wb') as metadata_file:
             ET.ElementTree(root).write(metadata_file, xml_declaration=True)
-        print(LUNA_ET)
+        logger.info(LUNA_ET)
         rough_luna_string = LUNA_ET.tostring(luna_root, 'utf-8')
         luna_reparsed = minidom.parseString(rough_luna_string)
         pretty_luna_string = luna_reparsed.toprettyxml(indent="\t")
@@ -526,69 +531,47 @@ def input_vernon_link():
             images = images[:-1]
         imageBlock = images.split(",")
 
-        print(imageBlock)
-
-        #imageType = request.form["image_types"]
-
-        # Derive image types variables
-        #arnold = False
-        #diu = False
-
-        #if imageType == 'arnold':
-        #    arnold = True
-
-        #if imageType == 'diu':
-        #    diu = True
+        logger.info(imageBlock)
 
         from xml.dom import minidom
         import xml.etree.cElementTree as ET
         root = ET.Element("recordSet")
 
         for imageNameStr in imageBlock:
-            print(imageNameStr)
+            logger.info(imageNameStr)
             doc = ET.SubElement(root, "record")
             metadata = Metadata()
 
-            #if arnold:
-            #    metadata.avNumber = imageNameStr
-            #    print(metadata.avNumber)
-            #    vernon_items = metadata.get_items_for_link(metadata.avNumber)
-
-            #if diu:
-                # For DIU images, we need to ask for accession no and view to be provided as well as image name
-                # Split these out
-            #vernon_items = metadata.get_items_for_link(imageNameStr[0:7])
-
             # SR 28/04/2025 - API failing to search with extension to get accession_no
             image_without_extension = imageNameStr.split('.')[0]
-            print(image_without_extension)
+            logger.info(image_without_extension)
             vernon_items = metadata.get_link_info(image_without_extension)
 
             if vernon_items and '_embedded' in vernon_items:
                 records = vernon_items['_embedded'].get('records', [])
                 if records:
                     first_record = records[0]
-                    print(first_record['user_sym_13'])  # Example of accessing a field
+                    logger.info(first_record['user_sym_13'])  # Example of accessing a field
                 else:
-                    print("No records found.")
+                    logger.info("No records found.")
             else:
-                print("Invalid data structure returned.")
+                logger.info("Invalid data structure returned.")
 
             metadata.accessionNo = metadata.get_av_ref(vernon_items)
 
             metadata.accessionNo = metadata.accessionNo.zfill(4)
-            print("AFTER ACCESSIONNO.ZFILL" + metadata.accessionNo)
+            logger.info("AFTER ACCESSIONNO.ZFILL" + metadata.accessionNo)
             object_items = metadata.get_items(metadata.accessionNo)
-            print("AFTER GET_ITEMS " + str(object_items))
+            logger.info("AFTER GET_ITEMS " + str(object_items))
             metadata.systemid = metadata.get_sysid(object_items)
-            print("AFTER GET_SYSID" + metadata.systemid)
+            logger.info("AFTER GET_SYSID" + metadata.systemid)
 
             searchAVBits = imageNameStr.split(".")
             metadata.searchAV = searchAVBits[0]
             vernon_av_items = metadata.get_av_items(metadata.searchAV)
-            print("AFTER GET_AV_ITEMS" + vernon_av_items)
+            logger.info("AFTER GET_AV_ITEMS" + str(vernon_av_items))
             metadata.av_systemid = metadata.get_av_sysid(vernon_av_items)
-
+            logger.info("AFTER GET_AV_ITEMS" + av_systemid)
             ET.SubElement(doc, "id").text = metadata.systemid
             ET.SubElement(doc, "av").text = metadata.av_systemid
 
@@ -599,25 +582,25 @@ def input_vernon_link():
         metadata_file.write(pretty_string)
         metadata_file.close()
 
-        print("AM I HERE" + imageBlock)
+        logger.info("AM I HERE" + imageBlock)
 
         from xml.dom import minidom
         import xml.etree.cElementTree as ET
-        print("I AM BUILDING A TREE")
+        logger.info("I AM BUILDING A TREE")
         root = ET.Element("recordSet")
         for imageNameStr in imageBlock:
-            print("AM I HERE?")
+            logger.info("AM I HERE?")
             doc = ET.SubElement(root, "record")
             metadata = Metadata()
             metadata.searchAV = imageNameStr.replace(".jpg","")
             metadata.searchAV = imageNameStr.replace(".tif","")
-            print(metadata.searchAV)
+            logger.info(metadata.searchAV)
             vernon_av_items = metadata.get_av_items(metadata.searchAV)
-            print(vernon_av_items)
+            logger.info(vernon_av_items)
             metadata.av_systemid = metadata.get_av_sysid(vernon_av_items)
-            print(metadata.av_systemid)
+            logger.info(metadata.av_systemid)
             luna_items = metadata.get_luna_items(imageNameStr)
-            print(luna_items)
+            logger.info(luna_items)
             metadata.lunaURL = "https://images.is.ed.ac.uk/luna/servlet/detail/" + metadata.get_luna_url(luna_items)
             metadata.imRefIIIF = metadata.lunaURL.replace('detail', 'iiif') + "/full/full/0/default.jpg"
             metadata.imRefIIIF = metadata.imRefIIIF.replace('https:', 'http:')
@@ -629,13 +612,13 @@ def input_vernon_link():
         iiif_string = ET.tostring(root, 'utf-8')
         reparsed_iiif = minidom.parseString(iiif_string)
         pretty_iiif_string = reparsed_iiif.toprettyxml(indent="\t")
-        print("I HAVE PRETTIFIED THE IIIF STRING HAVEN'T I?")
+        logger.info("I HAVE PRETTIFIED THE IIIF STRING HAVEN'T I?")
         metadata_file = open("files/iiif.xml", "w")
         metadata_file.write(pretty_iiif_string)
         metadata_file.close()
 
     except:
-        print("error")
+        logger.info("error")
         #return Response("error ", sys.exc_info()[0])
     #sys.exc_info()[0]
 
@@ -666,11 +649,11 @@ def get_max_id():
     except:
         return Response("error ", sys.exc_info()[0])
 
-    print(max_no)
+    logger.info(max_no)
 
     new_max_no = str(int(max_no) + 1).zfill(7)
 
-    print(new_max_no)
+    logger.info(new_max_no)
 
 
     return render_template("public/templates/get_max_id.html", data=new_max_no)
@@ -698,11 +681,11 @@ def get_max_id_art():
     except:
         return Response("error ", sys.exc_info()[0])
 
-    print(max_no)
+    logger.info(max_no)
 
     new_max_no = str(int(max_no) + 1).zfill(7)
 
-    print(new_max_no)
+    logger.info(new_max_no)
 
 
     return render_template("public/templates/get_max_id_art.html", data=new_max_no)
