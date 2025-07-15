@@ -407,13 +407,14 @@ class Metadata:
             version = 'My new User-Agent'
 
         url = vernon_api + "search:" + searchAV +"&fields=id,im_ref"
+        print("get_av_items" + url)
         myopener = MyOpener()
         response = myopener.open(url)
         try:
             data = response.read().decode("utf-8")
             return json.loads(data)
         except Exception:
-            print("nothing to run")
+            print("get_av_items" + url + "nothing to run")
 
     def get_items_for_link(self, avNumber):
         """
@@ -535,6 +536,7 @@ class Metadata:
             ssl._create_default_https_context = _create_unverified_https_context
 
         url = luna_api + imageNameStr
+        print("get_luna_items" + url)
         #myopener = MyOpener()
         try:
             response = urllib.request.urlopen(url)

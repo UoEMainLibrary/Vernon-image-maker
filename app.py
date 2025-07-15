@@ -602,6 +602,7 @@ def input_vernon_link():
         import xml.etree.cElementTree as ET
         root = ET.Element("recordSet")
         for imageNameStr in imageBlock:
+            print("AM I HERE?")
             doc = ET.SubElement(root, "record")
             metadata = Metadata()
             metadata.searchAV = imageNameStr.replace(".jpg","")
