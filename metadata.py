@@ -476,13 +476,27 @@ class Metadata:
 
         try:
             response = requests.get(url, headers=headers)
-            response.raise_for_status()
-            print("Response received successfully")
-            return response.json()
+            print(f"HTTP Status Code: {response.status_code}")
+            print(f"Response Headers: {response.headers}")
+            print("Raw response content:")
+            print(response.text)  # Show raw text to debug JSON parse errors
+
+            response.raise_for_status()  # Raise if status code is 4xx or 5xx
+
+            data = response.json()  # Try to parse JSON now that status is OK
+            print("Parsed JSON successfully")
+            return data
+
+        except requests.exceptions.HTTPError as http_err:
+            print(f"HTTP error occurred: {http_err}")
+        except requests.exceptions.RequestException as req_err:
+            print(f"Request exception occurred: {req_err}")
+        except ValueError as val_err:
+            print(f"JSON decoding failed: {val_err}")
         except Exception as e:
-            print(f"get_av_items {url} nothing to run")
-            print(f"Error: {e}")
-            return None
+            print(f"An unexpected error occurred: {e}")
+
+        return None
 
 
     def get_items_for_link(self, avNumber):
