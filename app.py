@@ -582,7 +582,7 @@ def input_vernon_link():
         metadata_file.write(pretty_string)
         metadata_file.close()
 
-        logger.info("AM I HERE" + imageBlock)
+        logger.info("AM I HERE" + str(imageBlock))
 
         from xml.dom import minidom
         import xml.etree.cElementTree as ET
